@@ -8,9 +8,9 @@ import globeImg from "@/assets/globe.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "LUMINA — Traducción premium de cursos para influencers" },
+      { title: "ETHOS — La forma más rápida de escalar tu contenido" },
       { name: "description", content: "Llevamos tu curso al mundo. Traducción profesional, subtitulado, doblaje y localización de cursos de influencers a más de 30 idiomas." },
-      { property: "og:title", content: "LUMINA — Traducción premium de cursos para influencers" },
+      { property: "og:title", content: "ETHOS — La forma más rápida de escalar tu contenido" },
       { property: "og:description", content: "Multiplica tus ventas internacionales. Traducimos cursos completos de influencers con calidad cinematográfica." },
     ],
   }),
@@ -41,8 +41,8 @@ function Nav() {
     <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-background/60 border-b border-border">
       <nav className="max-w-7xl mx-auto px-6 lg:px-10 h-20 flex items-center justify-between">
         <a href="#" className="flex items-center gap-2">
-          <span className="text-2xl font-display font-semibold tracking-wider text-gold-gradient">LUMINA</span>
-          <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground hidden sm:block">Translation Studio</span>
+          <span className="text-2xl font-display font-semibold tracking-wider text-gold-gradient">ETHOS</span>
+          <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground hidden sm:block">Translate</span>
         </a>
         <ul className="hidden md:flex items-center gap-10 text-sm text-muted-foreground">
           <li><a href="#servicios" className="hover:text-primary transition">Servicios</a></li>
@@ -67,22 +67,23 @@ function Hero() {
 
       <div className="relative max-w-6xl mx-auto px-6 lg:px-10 text-center">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 backdrop-blur text-xs uppercase tracking-[0.25em] text-primary mb-8 animate-fade-up">
-          <Sparkles className="w-3.5 h-3.5" /> Agencia boutique #1 en LATAM
+          <Sparkles className="w-3.5 h-3.5" /> Agencia #1 en impulsar cursos a nivel internacional.
         </div>
 
         <h1 className="text-5xl sm:text-7xl lg:text-8xl font-display font-medium leading-[0.95] tracking-tight animate-fade-up" style={{ animationDelay: "0.1s" }}>
-          Tu curso, hablado<br />
-          en <span className="italic text-gold-gradient animate-shimmer" style={{ backgroundImage: "linear-gradient(90deg, var(--gold-deep), var(--gold-bright), var(--gold-deep))", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>todo el mundo</span>
+          Haz que tu contenido<br />
+          llegue <span className="italic text-gold-gradient animate-shimmer" style={{ backgroundImage: "linear-gradient(90deg, var(--gold-deep), var(--gold-bright), var(--gold-deep))", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}> mas lejos</span>
         </h1>
 
         <p className="mt-8 max-w-2xl mx-auto text-lg lg:text-xl text-muted-foreground leading-relaxed animate-fade-up" style={{ animationDelay: "0.2s" }}>
-          Traducción, subtitulado y doblaje premium de cursos de influencers.
-          Multiplica tus ventas internacionales sin perder tu voz, tu marca ni tu impacto.
+          Traducción, adaptación de cursos y campañas de marketing para mercados internacionales sin perder la voz original del creador.<br />
+          Vende y crece globalmente sin tener que grabar todo otra vez.
         </p>
 
         <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-up" style={{ animationDelay: "0.3s" }}>
-          <a href="#contacto" className="group inline-flex items-center gap-2 px-8 py-4 rounded-full bg-gold-gradient text-primary-foreground font-medium shadow-glow hover:scale-[1.03] transition">
-            Solicitar cotización <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
+          <a href="mailto:ethostranslate@gmail.com?subject=Solicitud%20de%20DEMO&body=Hola%2C%20me%20gustar%C3%ADa%20solicitar%20una%20demo%20para%20un%20video%20de%20mi%20agencia." 
+          className="group inline-flex items-center gap-2 px-8 py-4 rounded-full bg-gold-gradient text-primary-foreground font-medium shadow-glow hover:scale-[1.03] transition">
+            Solicitar DEMO <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
           </a>
           <a href="#showcase" className="group inline-flex items-center gap-2 px-8 py-4 rounded-full border border-primary/40 text-foreground hover:bg-primary/10 transition">
             <Play className="w-4 h-4 text-primary" /> Ver muestra
@@ -92,7 +93,7 @@ function Hero() {
         <div className="mt-20 grid grid-cols-3 gap-8 max-w-2xl mx-auto animate-fade-up" style={{ animationDelay: "0.4s" }}>
           {[
             { k: "+180", v: "Cursos traducidos" },
-            { k: "30+", v: "Idiomas" },
+            { k: "50+", v: "Idiomas y Dialectos" },
             { k: "98%", v: "Retención cliente" },
           ].map((s) => (
             <div key={s.v} className="text-center">
@@ -107,14 +108,19 @@ function Hero() {
 }
 
 function Marquee() {
-  const items = ["MrBeast Academy", "Iman Gadzhi", "Ali Abdaal", "Alex Hormozi", "Marie Forleo", "Gary Vee", "Andrew Tate", "Tony Robbins"];
+  const items = ["Deutsch", "Português", "English", "Français", "Italiano"];
   return (
     <section className="border-y border-border bg-card/30 py-8 overflow-hidden">
-      <div className="text-xs uppercase tracking-[0.3em] text-muted-foreground text-center mb-6">Confían en nosotros</div>
-      <div className="flex gap-16 animate-shimmer whitespace-nowrap text-2xl lg:text-3xl font-display text-muted-foreground/60">
-        {[...items, ...items].map((i, idx) => (
+      <div className="text-xs uppercase tracking-[0.3em] text-muted-foreground text-center mb-6">Idiomas más usados</div>
+      <div className="flex gap-16 justify-center whitespace-nowrap text-2xl lg:text-3xl font-display text-muted-foreground/60">
+        {items.map((i, idx) => (
           <span key={idx} className="hover:text-primary transition">{i}</span>
         ))}
+      </div>
+      <div className="mt-8 text-center">
+        <span className="text-sm text-primary font-medium border border-primary/40 rounded-full px-4 py-1.5">
+          ¿No está tu idioma? Solicítalo →
+        </span>
       </div>
     </section>
   );
@@ -122,7 +128,7 @@ function Marquee() {
 
 function Services() {
   const services = [
-    { icon: Languages, title: "Traducción de guion", desc: "Adaptación cultural completa de cada lección, manteniendo tu tono, humor y autoridad." },
+    { icon: Languages, title: "Traducción de audio", desc: "Adaptación de idioma completa, manteniendo tu tono, humor y autoridad." },
     { icon: Play, title: "Subtitulado profesional", desc: "Subtítulos SRT/VTT sincronizados frame a frame, listos para Kajabi, Hotmart o Teachable." },
     { icon: Sparkles, title: "Doblaje con IA + voz humana", desc: "Clonación de tu voz en otros idiomas, revisada por actores profesionales nativos." },
     { icon: Globe2, title: "Localización total", desc: "Workbooks, diapositivas, landing pages y emails. Tu curso entero, listo para vender." },
@@ -429,8 +435,8 @@ function Footer() {
     <footer className="border-t border-border py-16 px-6 lg:px-10">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-8 justify-between items-start md:items-center">
         <div>
-          <div className="text-3xl font-display text-gold-gradient">LUMINA</div>
-          <div className="text-xs uppercase tracking-[0.3em] text-muted-foreground mt-2">Translation Studio</div>
+          <div className="text-3xl font-display text-gold-gradient">ETHOS</div>
+          <div className="text-xs uppercase tracking-[0.3em] text-muted-foreground mt-2">Translate</div>
         </div>
         <div className="text-sm text-muted-foreground">
           © {new Date().getFullYear()} Lumina Studio · Tu curso, en todo el mundo

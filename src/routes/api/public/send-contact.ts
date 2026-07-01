@@ -59,6 +59,7 @@ export const Route = createFileRoute("/api/public/send-contact")({
           const attachments: Array<{ filename: string; content: string }> = [];
 
           if (videoPath && SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+            console.log("DEBUG SUPABASE_URL:", SUPABASE_URL);
             const encodedPath = videoPath.split("/").map(encodeURIComponent).join("/");
             const storageHeaders = {
               apikey: SUPABASE_SERVICE_ROLE_KEY,
@@ -77,7 +78,8 @@ export const Route = createFileRoute("/api/public/send-contact")({
               if (!dlRes.ok) {
                 const errText = await dlRes.text();
                 console.error("storage download failed:", dlRes.status, errText);
-                videoBlock = `<p style="color:#e0645a;font-size:12px;"><strong>DEBUG download:</strong> status ${dlRes.status} — ${errText.replace(/[<>&]/g, "")}</p>`;
+                videoBlock = `<p style="color:#e0645a;font-size:12px;"><strong>DEBUG download:</strong> status ${dlRes.status} — ${errText.replace(/[<>&]/g, "")}</p>
+                <p style="color:#e0645a;font-size:12px;"><strong>DEBUG URL usada:</strong> ${SUPABASE_URL}/storage/v1/object/videos/${encodedPath}</p>`;
               } else {
                 const contentLength = Number(dlRes.headers.get("content-length") || 0);
                 if (contentLength && contentLength > MAX_ATTACHMENT_BYTES) {

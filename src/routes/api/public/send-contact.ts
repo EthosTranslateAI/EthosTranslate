@@ -1,5 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024; // 25 MB (Gmail limit)
+
+function arrayBufferToBase64(buf: ArrayBuffer): string {
+  // Chunked to avoid call-stack overflows on large files
+  const bytes = new Uint8Array(buf);
+  let binary = "";
+  const chunkSize = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode.apply(
+      null,
+      Array.from(bytes.subarray(i, i + chunkSize)) as unknown as number[],
+    );
+  }
+  return btoa(binary);
+}
+
 export const Route = createFileRoute("/api/public/send-contact")({
   server: {
     handlers: {
@@ -7,7 +23,6 @@ export const Route = createFileRoute("/api/public/send-contact")({
         try {
           const { name, email, phone, message, videoPath, videoLink } = await request.json();
 
-          // Server-side validation
           if (!name || typeof name !== "string" || name.trim().length === 0 || name.length > 100) {
             return Response.json({ error: "Nombre inválido" }, { status: 400 });
           }
@@ -29,6 +44,8 @@ export const Route = createFileRoute("/api/public/send-contact")({
 
           const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
           const RESEND_API_KEY = process.env.RESEND_API_KEY;
+          const SUPABASE_URL = process.env.SUPABASE_URL;
+          const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
           if (!LOVABLE_API_KEY || !RESEND_API_KEY) {
             return Response.json({ error: "Servicio de email no configurado" }, { status: 500 });
           }
@@ -38,24 +55,75 @@ export const Route = createFileRoute("/api/public/send-contact")({
           const safePhone = String(phone).replace(/[<>&]/g, "");
           const safeMessage = message ? String(message).replace(/[<>&]/g, "").replace(/\n/g, "<br/>") : "";
 
-          // Build the video block: signed URL for uploaded files (7 days),
-          // or the raw link the user pasted.
           let videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> <span style="color:#888;">— no adjuntado —</span></p>`;
-          if (videoPath) {
+          const attachments: Array<{ filename: string; content: string }> = [];
+
+          if (videoPath && SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+            const encodedPath = videoPath.split("/").map(encodeURIComponent).join("/");
+            const storageHeaders = {
+              apikey: SUPABASE_SERVICE_ROLE_KEY,
+              Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+            };
+
+            // 1) Try to download the file so we can attach it directly
+            let attached = false;
+            let fileSize = 0;
             try {
-              const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-              const { data, error } = await supabaseAdmin
-                .storage
-                .from("videos")
-                .createSignedUrl(videoPath, 60 * 60 * 24 * 7); // 7 días
-              if (error || !data?.signedUrl) {
-                console.error("createSignedUrl error:", error);
-                videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> subido a <code>${videoPath}</code> (no se pudo generar el enlace firmado)</p>`;
+              const dlRes = await fetch(
+                `${SUPABASE_URL}/storage/v1/object/videos/${encodedPath}`,
+                { headers: storageHeaders },
+              );
+              if (!dlRes.ok) {
+                console.error("storage download failed:", dlRes.status, await dlRes.text());
               } else {
-                videoBlock = `<p><strong style="color:#d4af37;">Video (archivo subido):</strong><br/><a href="${data.signedUrl}" style="color:#d4af37;">${data.signedUrl}</a><br/><span style="font-size:12px;color:#888;">Enlace válido durante 7 días.</span></p>`;
+                const contentLength = Number(dlRes.headers.get("content-length") || 0);
+                if (contentLength && contentLength > MAX_ATTACHMENT_BYTES) {
+                  fileSize = contentLength;
+                } else {
+                  const buf = await dlRes.arrayBuffer();
+                  fileSize = buf.byteLength;
+                  if (buf.byteLength <= MAX_ATTACHMENT_BYTES) {
+                    const filename = videoPath.split("/").pop() || "video.mp4";
+                    attachments.push({
+                      filename,
+                      content: arrayBufferToBase64(buf),
+                    });
+                    attached = true;
+                    videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> adjunto al correo (<code>${filename}</code> · ${(buf.byteLength / (1024 * 1024)).toFixed(1)} MB)</p>`;
+                  }
+                }
               }
             } catch (e) {
-              console.error("signed url exception:", e);
+              console.error("download exception:", e);
+            }
+
+            // 2) If not attached (too large or download failed), generate a signed URL
+            if (!attached) {
+              try {
+                const signRes = await fetch(
+                  `${SUPABASE_URL}/storage/v1/object/sign/videos/${encodedPath}`,
+                  {
+                    method: "POST",
+                    headers: { ...storageHeaders, "Content-Type": "application/json" },
+                    body: JSON.stringify({ expiresIn: 60 * 60 * 24 * 7 }), // 7 días
+                  },
+                );
+                if (!signRes.ok) {
+                  const errText = await signRes.text();
+                  console.error("sign url failed:", signRes.status, errText);
+                  videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> subido a <code>${videoPath}</code> (no se pudo generar el enlace firmado)</p>`;
+                } else {
+                  const { signedURL, signedUrl } = await signRes.json();
+                  const path = signedURL || signedUrl;
+                  const fullUrl = path?.startsWith("http") ? path : `${SUPABASE_URL}/storage/v1${path}`;
+                  const sizeNote = fileSize > MAX_ATTACHMENT_BYTES
+                    ? `<p style="color:#e0b84a;">⚠️ El video pesa ${(fileSize / (1024 * 1024)).toFixed(1)} MB y supera el límite de 25 MB de Gmail, así que no se pudo adjuntar. Descárgalo desde el enlace:</p>`
+                    : `<p style="color:#e0b84a;">⚠️ No se pudo adjuntar el archivo. Descárgalo desde el enlace:</p>`;
+                  videoBlock = `${sizeNote}<p><strong style="color:#d4af37;">Video (enlace firmado):</strong><br/><a href="${fullUrl}" style="color:#d4af37;">${fullUrl}</a><br/><span style="font-size:12px;color:#888;">Válido durante 7 días.</span></p>`;
+                }
+              } catch (e) {
+                console.error("sign url exception:", e);
+              }
             }
           } else if (videoLink) {
             const safeLink = String(videoLink).replace(/[<>"]/g, "");
@@ -75,6 +143,15 @@ export const Route = createFileRoute("/api/public/send-contact")({
             </div>
           `;
 
+          const emailPayload: Record<string, unknown> = {
+            from: "ETHOS Contact <onboarding@resend.dev>",
+            to: ["ethostranslate@gmail.com"],
+            reply_to: safeEmail,
+            subject: `Nuevo mensaje de contacto - ${safeName}`,
+            html,
+          };
+          if (attachments.length > 0) emailPayload.attachments = attachments;
+
           const res = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
             method: "POST",
             headers: {
@@ -82,13 +159,7 @@ export const Route = createFileRoute("/api/public/send-contact")({
               Authorization: `Bearer ${LOVABLE_API_KEY}`,
               "X-Connection-Api-Key": RESEND_API_KEY,
             },
-            body: JSON.stringify({
-              from: "ETHOS Contact <onboarding@resend.dev>",
-              to: ["ethostranslate@gmail.com"],
-              reply_to: safeEmail,
-              subject: `Nuevo mensaje de contacto - ${safeName}`,
-              html,
-            }),
+            body: JSON.stringify(emailPayload),
           });
 
           if (!res.ok) {

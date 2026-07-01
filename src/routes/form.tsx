@@ -1,12 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowRight, Mail, Phone, User, CheckCircle2, AlertCircle } from "lucide-react";
+import { ArrowRight, Mail, Phone, User, CheckCircle2, AlertCircle, MessageCircle, Video } from "lucide-react";
 
 export const Route = createFileRoute("/form")({
   head: () => ({
     meta: [
       { title: "Contacto — ETHOS Translate" },
-      { name: "description", content: "Contáctanos para llevar tu curso a audiencias globales. Respuesta en menos de 4 horas hábiles." },
+      { name: "description", content: "Contáctanos para llevar tu curso a audiencias globales. Respuesta lo antes posible." },
       { property: "og:title", content: "Contacto — ETHOS Translate" },
       { property: "og:description", content: "Escríbenos y te ayudamos a escalar tu contenido internacionalmente." },
     ],
@@ -14,13 +14,17 @@ export const Route = createFileRoute("/form")({
   component: FormPage,
 });
 
-type Errors = { name?: string; email?: string; phone?: string };
+type Errors = { name?: string; email?: string; phone?: string; message?: string };
 
 function FormPage() {
-  const [form, setForm] = useState({ name: "", email: "", phone: "" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [errors, setErrors] = useState<Errors>({});
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [videoMode, setVideoMode] = useState<"file" | "link">("file");
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoLink, setVideoLink] = useState("");
+  const [videoError, setVideoError] = useState("");
 
   const validate = (): Errors => {
     const e: Errors = {};
@@ -32,7 +36,13 @@ function FormPage() {
 
     if (!form.phone.trim()) e.phone = "El teléfono es obligatorio";
     else if (!/^[\d\s+()-]{6,40}$/.test(form.phone)) e.phone = "Teléfono inválido";
-    return e;
+    if (videoMode === "link" && videoLink.trim() && !/^https?:\/\/.+/.test(videoLink)) {
+      setVideoError("El enlace debe empezar por http:// o https://");
+    } else {
+      setVideoError("");
+    }
+
+    return e
   };
 
   const onSubmit = async (ev: React.FormEvent) => {
@@ -54,7 +64,7 @@ function FormPage() {
         throw new Error(data.error || "No se pudo enviar el mensaje");
       }
       setStatus("success");
-      setForm({ name: "", email: "", phone: "" });
+      setForm({ name: "", email: "", phone: "", message: "" });
     } catch (err) {
       setStatus("error");
       setErrorMsg(err instanceof Error ? err.message : "Error desconocido");
@@ -75,7 +85,7 @@ function FormPage() {
               Hablemos de tu <span className="italic text-gold-gradient">próximo lanzamiento</span>
             </h1>
             <p className="mt-6 text-muted-foreground text-lg">
-              Déjanos tus datos y te contactamos en menos de 4 horas hábiles.
+              Déjanos tus datos con tu video y te hacemos una demo personalizada para que veas como funciona lo antes posible.
             </p>
           </div>
 
@@ -113,6 +123,24 @@ function FormPage() {
                 placeholder="+34 600 000 000"
                 autoComplete="tel"
               />
+              <Field
+                icon={<MessageCircle className="w-4 h-4" />}
+                label={<>Mensaje <span className="text-muted-foreground/50">(opcional)</span></>}
+                name="message"
+                value={form.message}
+                onChange={(v) => setForm({...form, message: v})}
+                placeholder="Escribe aqui tu mensaje"
+                autoComplete="off"
+              />
+              <VideoField
+                mode={videoMode}
+                onModeChange={setVideoMode}
+                file={videoFile}
+                onFileChange={setVideoFile}
+                link={videoLink}
+                onLinkChange={setVideoLink}
+                error={videoError}
+/>
 
               <button
                 type="submit"
@@ -144,11 +172,88 @@ function FormPage() {
   );
 }
 
+function VideoField({
+  mode, onModeChange, file, onFileChange, link, onLinkChange, error,
+}: {
+  mode: "file" | "link";
+  onModeChange: (m: "file" | "link") => void;
+  file: File | null;
+  onFileChange: (f: File | null) => void;
+  link: string;
+  onLinkChange: (v: string) => void;
+  error?: string;
+}) {
+  return (
+    <div>
+      <label className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
+        <Video className="w-4 h-4 text-primary" />
+        Video
+      </label>
+
+      <div className="relative inline-flex p-1 rounded-full bg-background/60 border border-border mb-3">
+  {/* Fondo que se desliza */}
+  <div
+    className="absolute top-1 bottom-1 left-1 rounded-full bg-gold-gradient transition-transform duration-300 ease-out"
+    style={{
+      width: "calc(50% - 4px)",
+      transform: mode === "link" ? "translateX(100%)" : "translateX(0%)",
+    }}
+  />
+
+        <button
+          type="button"
+          onClick={() => onModeChange("file")}
+          className={`relative z-10 flex-1 px-4 whitespace-nowrap py-1.5 rounded-full text-xs transition-colors duration-300 ${
+            mode === "file" ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Subir archivo
+        </button>
+        <button
+          type="button"
+          onClick={() => onModeChange("link")}
+          className={`relative z-10 flex-1 px-4 py-1.5 rounded-full whitespace-nowrap text-xs transition-colors duration-300 ${
+            mode === "link" ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Pegar enlace
+        </button>
+      </div>
+
+      {mode === "file" ? (
+        <div>
+          <input
+            type="file"
+            accept="video/*"
+            onChange={(e) => onFileChange(e.target.files?.[0] ?? null)}
+            className="w-full text-sm text-muted-foreground file:mr-4 file:px-4 file:py-2.5 file:rounded-full file:border-0 file:bg-gold-gradient file:text-primary-foreground file:cursor-pointer cursor-pointer"
+          />
+          {file && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              {file.name} · {(file.size / (1024 * 1024)).toFixed(1)} MB
+            </p>
+          )}
+        </div>
+      ) : (
+        <input
+          type="url"
+          value={link}
+          onChange={(e) => onLinkChange(e.target.value)}
+          placeholder="https://youtube.com/... o https://drive.google.com/..."
+          className={`w-full px-5 py-3.5 rounded-2xl bg-background/60 border ${error ? "border-destructive/60" : "border-border"} text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary transition`}
+        />
+      )}
+
+      {error && <p className="mt-2 text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {error}</p>}
+    </div>
+  );
+}
+
 function Field({
   icon, label, name, value, onChange, error, type = "text", placeholder, autoComplete,
 }: {
   icon: React.ReactNode;
-  label: string;
+  label: React.ReactNode;
   name: string;
   value: string;
   onChange: (v: string) => void;
@@ -182,20 +287,17 @@ function Field({
 function Nav() {
   return (
     <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-background/60 border-b border-border">
-      <nav className="max-w-7xl mx-auto px-6 lg:px-10 h-20 flex items-center justify-between">
+      <nav className="relative max-w-7xl mx-auto px-6 lg:px-10 h-20 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
           <span className="text-2xl font-display font-semibold tracking-wider text-gold-gradient">ETHOS</span>
           <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground hidden sm:block">Translate</span>
         </Link>
-        <ul className="hidden md:flex items-center gap-10 text-sm text-muted-foreground">
+        <ul className="hidden md:flex items-center gap-10 text-sm text-muted-foreground absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
           <li><Link to="/" hash="servicios" className="hover:text-primary transition">Servicios</Link></li>
           <li><Link to="/" hash="proceso" className="hover:text-primary transition">Proceso</Link></li>
           <li><Link to="/" hash="precios" className="hover:text-primary transition">Precios</Link></li>
           <li><Link to="/" hash="testimonios" className="hover:text-primary transition">Casos</Link></li>
         </ul>
-        <Link to="/form" className="group relative inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gold-gradient text-primary-foreground text-sm font-medium shadow-glow hover:scale-[1.03] transition">
-          Contáctanos <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition" />
-        </Link>
       </nav>
     </header>
   );
@@ -210,7 +312,7 @@ function Footer() {
           <div className="text-xs uppercase tracking-[0.3em] text-muted-foreground mt-2">Translate</div>
         </div>
         <div className="text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Lumina Studio · Tu curso, en todo el mundo
+          © {new Date().getFullYear()} Ethos Translate · Tu curso, en todo el mundo
         </div>
       </div>
     </footer>

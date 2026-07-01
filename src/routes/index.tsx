@@ -52,7 +52,7 @@ function Nav() {
           <li><Link to="/form" className="hover:text-primary transition">Contáctanos</Link></li>
         </ul>
         <Link to="/form" className="group relative inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gold-gradient text-primary-foreground text-sm font-medium shadow-glow hover:scale-[1.03] transition">
-          Cotizar ahora <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition" />
+          Obten tu DEMO personal <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition" />
         </Link>
       </nav>
     </header>
@@ -82,7 +82,7 @@ function Hero() {
         </p>
 
         <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-up" style={{ animationDelay: "0.3s" }}>
-          <a href="mailto:ethostranslate@gmail.com?subject=Solicitud%20de%20DEMO&body=Hola%2C%20me%20gustar%C3%ADa%20solicitar%20una%20demo%20para%20un%20video%20de%20mi%20agencia." 
+          <a href="https://ethostranslate.lovable.app/form" 
           className="group inline-flex items-center gap-2 px-8 py-4 rounded-full bg-gold-gradient text-primary-foreground font-medium shadow-glow hover:scale-[1.03] transition">
             Solicitar DEMO <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
           </a>
@@ -119,9 +119,10 @@ function Marquee() {
         ))}
       </div>
       <div className="mt-8 text-center">
-        <span className="text-sm text-primary font-medium border border-primary/40 rounded-full px-4 py-1.5">
+        <a href="https://ethostranslate.lovable.app/form" 
+        className="text-sm text-primary font-medium border border-primary/40 rounded-full px-4 py-1.5">
           ¿No está tu idioma? Solicítalo →
-        </span>
+        </a>
       </div>
     </section>
   );

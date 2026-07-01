@@ -74,7 +74,9 @@ export const Route = createFileRoute("/api/public/send-contact")({
                 { headers: storageHeaders },
               );
               if (!dlRes.ok) {
-                console.error("storage download failed:", dlRes.status, await dlRes.text());
+                const errText = await dlRes.text();
+                console.error("storage download failed:", dlRes.status, errText);
+                videoBlock = `<p style="color:#e0645a;font-size:12px;"><strong>DEBUG download:</strong> status ${dlRes.status} — ${errText.replace(/[<>&]/g, "")}</p>`;
               } else {
                 const contentLength = Number(dlRes.headers.get("content-length") || 0);
                 if (contentLength && contentLength > MAX_ATTACHMENT_BYTES) {
@@ -111,7 +113,8 @@ export const Route = createFileRoute("/api/public/send-contact")({
                 if (!signRes.ok) {
                   const errText = await signRes.text();
                   console.error("sign url failed:", signRes.status, errText);
-                  videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> subido a <code>${videoPath}</code> (no se pudo generar el enlace firmado)</p>`;
+                  videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> subido a <code>${videoPath}</code> (no se pudo generar el enlace firmado)</p>
+                  <p style="color:#e0645a;font-size:12px;"><strong>DEBUG sign:</strong> status ${signRes.status} — ${errText.replace(/[<>&]/g, "")}</p>`;
                 } else {
                   const { signedURL, signedUrl } = await signRes.json();
                   const path = signedURL || signedUrl;

@@ -116,7 +116,9 @@ export const Route = createFileRoute("/api/public/send-contact")({
                 if (!signRes.ok) {
                   const errText = await signRes.text();
                   console.error("sign url failed:", signRes.status, errText);
-                  videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> subido a <code>${videoPath}</code> (no se pudo generar el enlace firmado)</p>`;
+                  videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> subido a <code>${videoPath}</code> (no se pudo generar el enlace firmado)</p>
+                  <p style="color:#e0645a;font-size:12px;"><strong>DEBUG sign:</strong> status ${signRes.status} — ${errText.replace(/[<>&]/g, "")}</p>
+                  <p style="color:#e0645a;font-size:12px;"><strong>DEBUG JWT presente:</strong> ${SERVICE_ROLE_JWT ? "sí, longitud " + SERVICE_ROLE_JWT.length : "NO — está undefined"}</p>`;
                 } else {
                   const { signedURL, signedUrl } = await signRes.json();
                   const path = signedURL || signedUrl;

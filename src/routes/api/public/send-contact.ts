@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024; // 25 MB (Gmail limit)
+const SUPABASE_STORAGE_URL = "https://rzqtkuwvitknnkdlnrxi.supabase.co";
 
 function arrayBufferToBase64(buf: ArrayBuffer): string {
   // Chunked to avoid call-stack overflows on large files
@@ -44,8 +45,8 @@ export const Route = createFileRoute("/api/public/send-contact")({
 
           const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
           const RESEND_API_KEY = process.env.RESEND_API_KEY;
-          const SUPABASE_URL = process.env.SUPABASE_URL;
           const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+          const SERVICE_ROLE_JWT = process.env.SERVICE_ROLE_JWT;
           if (!LOVABLE_API_KEY || !RESEND_API_KEY) {
             return Response.json({ error: "Servicio de email no configurado" }, { status: 500 });
           }
@@ -58,28 +59,23 @@ export const Route = createFileRoute("/api/public/send-contact")({
           let videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> <span style="color:#888;">— no adjuntado —</span></p>`;
           const attachments: Array<{ filename: string; content: string }> = [];
 
-          if (videoPath && SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
-            console.log("DEBUG SUPABASE_URL:", SUPABASE_URL);
+          if (videoPath && SUPABASE_SERVICE_ROLE_KEY) {
             const encodedPath = videoPath.split("/").map(encodeURIComponent).join("/");
             const storageHeaders = {
               apikey: SUPABASE_SERVICE_ROLE_KEY,
               Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
             };
-            const SUPABASE_SERVICE_ROLE_JWT = process.env.SERVICE_ROLE_JWT;
 
             // 1) Try to download the file so we can attach it directly
             let attached = false;
             let fileSize = 0;
             try {
               const dlRes = await fetch(
-                `${SUPABASE_URL}/storage/v1/object/videos/${encodedPath}`,
+                `${SUPABASE_STORAGE_URL}/storage/v1/object/videos/${encodedPath}`,
                 { headers: storageHeaders },
               );
               if (!dlRes.ok) {
-                const errText = await dlRes.text();
-                console.error("storage download failed:", dlRes.status, errText);
-                videoBlock = `<p style="color:#e0645a;font-size:12px;"><strong>DEBUG download:</strong> status ${dlRes.status} — ${errText.replace(/[<>&]/g, "")}</p>
-                <p style="color:#e0645a;font-size:12px;"><strong>DEBUG URL usada:</strong> ${SUPABASE_URL}/storage/v1/object/videos/${encodedPath}</p>`;
+                console.error("storage download failed:", dlRes.status, await dlRes.text());
               } else {
                 const contentLength = Number(dlRes.headers.get("content-length") || 0);
                 if (contentLength && contentLength > MAX_ATTACHMENT_BYTES) {
@@ -106,7 +102,7 @@ export const Route = createFileRoute("/api/public/send-contact")({
             if (!attached) {
               try {
                 const signRes = await fetch(
-                 `${SUPABASE_URL}/storage/v1/object/sign/videos/${encodedPath}`,
+                  `${SUPABASE_STORAGE_URL}/storage/v1/object/sign/videos/${encodedPath}`,
                   {
                     method: "POST",
                     headers: {
@@ -120,12 +116,11 @@ export const Route = createFileRoute("/api/public/send-contact")({
                 if (!signRes.ok) {
                   const errText = await signRes.text();
                   console.error("sign url failed:", signRes.status, errText);
-                  videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> subido a <code>${videoPath}</code> (no se pudo generar el enlace firmado)</p>
-                  <p style="color:#e0645a;font-size:12px;"><strong>DEBUG sign:</strong> status ${signRes.status} — ${errText.replace(/[<>&]/g, "")}</p>`;
+                  videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> subido a <code>${videoPath}</code> (no se pudo generar el enlace firmado)</p>`;
                 } else {
                   const { signedURL, signedUrl } = await signRes.json();
                   const path = signedURL || signedUrl;
-                  const fullUrl = path?.startsWith("http") ? path : `${SUPABASE_URL}/storage/v1${path}`;
+                  const fullUrl = path?.startsWith("http") ? path : `${SUPABASE_STORAGE_URL}/storage/v1${path}`;
                   const sizeNote = fileSize > MAX_ATTACHMENT_BYTES
                     ? `<p style="color:#e0b84a;">⚠️ El video pesa ${(fileSize / (1024 * 1024)).toFixed(1)} MB y supera el límite de 25 MB de Gmail, así que no se pudo adjuntar. Descárgalo desde el enlace:</p>`
                     : `<p style="color:#e0b84a;">⚠️ No se pudo adjuntar el archivo. Descárgalo desde el enlace:</p>`;

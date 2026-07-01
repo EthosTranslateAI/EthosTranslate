@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowRight, Mail, Phone, User, CheckCircle2, AlertCircle, MessageCircle, Video } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/form")({
   head: () => ({
@@ -50,14 +51,33 @@ function FormPage() {
     const e = validate();
     setErrors(e);
     if (Object.keys(e).length > 0) return;
+    if (videoMode === "link" && videoLink.trim() && !/^https?:\/\/.+/i.test(videoLink)) return;
 
     setStatus("sending");
     setErrorMsg("");
     try {
+      let videoPath: string | undefined;
+      let videoLinkToSend: string | undefined;
+
+      if (videoMode === "file" && videoFile) {
+        const cleanName = videoFile.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80);
+        const path = `contact/${crypto.randomUUID()}-${cleanName}`;
+        const { error: upErr } = await supabase.storage
+          .from("videos")
+          .upload(path, videoFile, {
+            contentType: videoFile.type || "video/mp4",
+            upsert: false,
+          });
+        if (upErr) throw new Error("No se pudo subir el video: " + upErr.message);
+        videoPath = path;
+      } else if (videoMode === "link" && videoLink.trim()) {
+        videoLinkToSend = videoLink.trim();
+      }
+
       const res = await fetch("/api/public/send-contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, videoPath, videoLink: videoLinkToSend }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -65,6 +85,8 @@ function FormPage() {
       }
       setStatus("success");
       setForm({ name: "", email: "", phone: "", message: "" });
+      setVideoFile(null);
+      setVideoLink("");
     } catch (err) {
       setStatus("error");
       setErrorMsg(err instanceof Error ? err.message : "Error desconocido");

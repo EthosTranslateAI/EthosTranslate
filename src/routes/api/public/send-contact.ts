@@ -64,6 +64,7 @@ export const Route = createFileRoute("/api/public/send-contact")({
               apikey: SUPABASE_SERVICE_ROLE_KEY,
               Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
             };
+            const SUPABASE_SERVICE_ROLE_JWT = process.env.SERVICE_ROLE_JWT;
 
             // 1) Try to download the file so we can attach it directly
             let attached = false;
@@ -103,11 +104,15 @@ export const Route = createFileRoute("/api/public/send-contact")({
             if (!attached) {
               try {
                 const signRes = await fetch(
-                  `${SUPABASE_URL}/storage/v1/object/sign/videos/${encodedPath}`,
+                 `${SUPABASE_URL}/storage/v1/object/sign/videos/${encodedPath}`,
                   {
                     method: "POST",
-                    headers: { ...storageHeaders, "Content-Type": "application/json" },
-                    body: JSON.stringify({ expiresIn: 60 * 60 * 24 * 7 }), // 7 días
+                    headers: {
+                      apikey: SERVICE_ROLE_JWT!,
+                      Authorization: `Bearer ${SERVICE_ROLE_JWT}`,
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ expiresIn: 60 * 60 * 24 * 7 }),
                   },
                 );
                 if (!signRes.ok) {

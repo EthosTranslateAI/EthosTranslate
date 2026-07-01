@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+// force redeploy to pick up SERVICE_ROLE_JWT
 
 const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024; // 25 MB (Gmail limit)
 const SUPABASE_STORAGE_URL = "https://rzqtkuwvitknnkdlnrxi.supabase.co";

@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 // force redeploy to pick up SERVICE_ROLE_JWT
 
-const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024; // 25 MB (Gmail limit)
 const SUPABASE_STORAGE_URL = "https://rzqtkuwvitknnkdlnrxi.supabase.co";
 
 function arrayBufferToBase64(buf: ArrayBuffer): string {
@@ -47,7 +46,6 @@ export const Route = createFileRoute("/api/public/send-contact")({
           const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
           const RESEND_API_KEY = process.env.RESEND_API_KEY;
           const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-          const SERVICE_ROLE_JWT = process.env.SERVICE_ROLE_JWT;
           if (!LOVABLE_API_KEY || !RESEND_API_KEY) {
             return Response.json({ error: "Servicio de email no configurado" }, { status: 500 });
           }
@@ -61,82 +59,37 @@ export const Route = createFileRoute("/api/public/send-contact")({
           const attachments: Array<{ filename: string; content: string }> = [];
 
           if (videoPath && SUPABASE_SERVICE_ROLE_KEY) {
-            const encodedPath = videoPath.split("/").map(encodeURIComponent).join("/");
-            const storageHeaders = {
-              apikey: SUPABASE_SERVICE_ROLE_KEY,
-              Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-            };
+  const encodedPath = videoPath.split("/").map(encodeURIComponent).join("/");
+  const storageHeaders = {
+    apikey: SUPABASE_SERVICE_ROLE_KEY,
+    Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+  };
 
-            // 1) Try to download the file so we can attach it directly
-            let attached = false;
-            let fileSize = 0;
-            try {
-              const dlRes = await fetch(
-                `${SUPABASE_STORAGE_URL}/storage/v1/object/videos/${encodedPath}`,
-                { headers: storageHeaders },
-              );
-              if (!dlRes.ok) {
-                console.error("storage download failed:", dlRes.status, await dlRes.text());
-              } else {
-                const contentLength = Number(dlRes.headers.get("content-length") || 0);
-                if (contentLength && contentLength > MAX_ATTACHMENT_BYTES) {
-                  fileSize = contentLength;
-                } else {
-                  const buf = await dlRes.arrayBuffer();
-                  fileSize = buf.byteLength;
-                  if (buf.byteLength <= MAX_ATTACHMENT_BYTES) {
-                    const filename = videoPath.split("/").pop() || "video.mp4";
-                    attachments.push({
-                      filename,
-                      content: arrayBufferToBase64(buf),
-                    });
-                    attached = true;
-                    videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> adjunto al correo (<code>${filename}</code> · ${(buf.byteLength / (1024 * 1024)).toFixed(1)} MB)</p>`;
-                  }
-                }
-              }
-            } catch (e) {
-              console.error("download exception:", e);
-            }
-
-            // 2) If not attached (too large or download failed), generate a signed URL
-            if (!attached) {
-              try {
-                const signRes = await fetch(
-                  `${SUPABASE_STORAGE_URL}/storage/v1/object/sign/videos/${encodedPath}`,
-                  {
-                    method: "POST",
-                    headers: {
-                      apikey: SERVICE_ROLE_JWT!,
-                      Authorization: `Bearer ${SERVICE_ROLE_JWT}`,
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ expiresIn: 60 * 60 * 24 * 7 }),
-                  },
-                );
-                if (!signRes.ok) {
-                  const errText = await signRes.text();
-                  console.error("sign url failed:", signRes.status, errText);
-                  videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> subido a <code>${videoPath}</code> (no se pudo generar el enlace firmado)</p>
-                  <p style="color:#e0645a;font-size:12px;"><strong>DEBUG sign:</strong> status ${signRes.status} — ${errText.replace(/[<>&]/g, "")}</p>
-                  <p style="color:#e0645a;font-size:12px;"><strong>DEBUG JWT presente:</strong> ${SERVICE_ROLE_JWT ? "sí, longitud " + SERVICE_ROLE_JWT.length : "NO — está undefined"}</p>`;
-                } else {
-                  const { signedURL, signedUrl } = await signRes.json();
-                  const path = signedURL || signedUrl;
-                  const fullUrl = path?.startsWith("http") ? path : `${SUPABASE_STORAGE_URL}/storage/v1${path}`;
-                  const sizeNote = fileSize > MAX_ATTACHMENT_BYTES
-                    ? `<p style="color:#e0b84a;">⚠️ El video pesa ${(fileSize / (1024 * 1024)).toFixed(1)} MB y supera el límite de 25 MB de Gmail, así que no se pudo adjuntar. Descárgalo desde el enlace:</p>`
-                    : `<p style="color:#e0b84a;">⚠️ No se pudo adjuntar el archivo. Descárgalo desde el enlace:</p>`;
-                  videoBlock = `${sizeNote}<p><strong style="color:#d4af37;">Video (enlace firmado):</strong><br/><a href="${fullUrl}" style="color:#d4af37;">${fullUrl}</a><br/><span style="font-size:12px;color:#888;">Válido durante 7 días.</span></p>`;
-                }
-              } catch (e) {
-                console.error("sign url exception:", e);
-              }
-            }
-          } else if (videoLink) {
-            const safeLink = String(videoLink).replace(/[<>"]/g, "");
-            videoBlock = `<p><strong style="color:#d4af37;">Video (enlace):</strong><br/><a href="${safeLink}" style="color:#d4af37;">${safeLink}</a></p>`;
-          }
+  try {
+    const dlRes = await fetch(
+      `${SUPABASE_STORAGE_URL}/storage/v1/object/videos/${encodedPath}`,
+      { headers: storageHeaders },
+    );
+    if (!dlRes.ok) {
+      console.error("storage download failed:", dlRes.status, await dlRes.text());
+      videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> se subió pero no se pudo adjuntar al correo. Ruta: <code>${videoPath}</code></p>`;
+    } else {
+      const buf = await dlRes.arrayBuffer();
+      const filename = videoPath.split("/").pop() || "video.mp4";
+      attachments.push({
+        filename,
+        content: arrayBufferToBase64(buf),
+      });
+      videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> adjunto al correo (<code>${filename}</code> · ${(buf.byteLength / (1024 * 1024)).toFixed(1)} MB)</p>`;
+    }
+  } catch (e) {
+    console.error("download exception:", e);
+    videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> se subió pero hubo un error al adjuntarlo. Ruta: <code>${videoPath}</code></p>`;
+  }
+} else if (videoLink) {
+  const safeLink = String(videoLink).replace(/[<>"]/g, "");
+  videoBlock = `<p><strong style="color:#d4af37;">Video (enlace):</strong><br/><a href="${safeLink}" style="color:#d4af37;">${safeLink}</a></p>`;
+}
 
           const html = `
             <div style="font-family:Arial,sans-serif;background:#0a0a0a;color:#f5f5f5;padding:32px;">

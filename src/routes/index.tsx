@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Globe2, Languages, Sparkles, Clock, ShieldCheck, TrendingUp, Check, ArrowRight, Play, Star, Quote } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
@@ -49,10 +49,11 @@ function Nav() {
           <li><a href="#proceso" className="hover:text-primary transition">Proceso</a></li>
           <li><a href="#precios" className="hover:text-primary transition">Precios</a></li>
           <li><a href="#testimonios" className="hover:text-primary transition">Casos</a></li>
+          <li><Link to="/form" className="hover:text-primary transition">Contáctanos</Link></li>
         </ul>
-        <a href="#contacto" className="group relative inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gold-gradient text-primary-foreground text-sm font-medium shadow-glow hover:scale-[1.03] transition">
+        <Link to="/form" className="group relative inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gold-gradient text-primary-foreground text-sm font-medium shadow-glow hover:scale-[1.03] transition">
           Cotizar ahora <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition" />
-        </a>
+        </Link>
       </nav>
     </header>
   );

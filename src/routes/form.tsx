@@ -60,11 +60,23 @@ function FormPage() {
       let videoLinkToSend: string | undefined;
 
       if (videoMode === "file" && videoFile) {
-        const cleanName = videoFile.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80);
-        const path = `contact/${crypto.randomUUID()}-${cleanName}`;
+        const signRes = await fetch("/api/public/create-video-upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            filename: videoFile.name,
+            size: videoFile.size,
+            contentType: videoFile.type || "video/mp4",
+          }),
+        });
+        if (!signRes.ok) {
+          const data = await signRes.json().catch(() => ({}));
+          throw new Error(data.error || "No se pudo preparar la subida del video");
+        }
+        const { path, token } = await signRes.json();
         const { error: upErr } = await supabase.storage
           .from("videos")
-          .upload(path, videoFile, {
+          .uploadToSignedUrl(path, token, videoFile, {
             contentType: videoFile.type || "video/mp4",
             upsert: false,
           });

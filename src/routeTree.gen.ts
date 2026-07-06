@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as FormRouteImport } from './routes/form'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiPublicSendContactRouteImport } from './routes/api/public/send-contact'
+import { Route as ApiPublicCreateVideoUploadRouteImport } from './routes/api/public/create-video-upload'
 
 const FormRoute = FormRouteImport.update({
   id: '/form',
@@ -28,34 +29,57 @@ const ApiPublicSendContactRoute = ApiPublicSendContactRouteImport.update({
   path: '/api/public/send-contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCreateVideoUploadRoute =
+  ApiPublicCreateVideoUploadRouteImport.update({
+    id: '/api/public/create-video-upload',
+    path: '/api/public/create-video-upload',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/form': typeof FormRoute
+  '/api/public/create-video-upload': typeof ApiPublicCreateVideoUploadRoute
   '/api/public/send-contact': typeof ApiPublicSendContactRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/form': typeof FormRoute
+  '/api/public/create-video-upload': typeof ApiPublicCreateVideoUploadRoute
   '/api/public/send-contact': typeof ApiPublicSendContactRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/form': typeof FormRoute
+  '/api/public/create-video-upload': typeof ApiPublicCreateVideoUploadRoute
   '/api/public/send-contact': typeof ApiPublicSendContactRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/form' | '/api/public/send-contact'
+  fullPaths:
+    | '/'
+    | '/form'
+    | '/api/public/create-video-upload'
+    | '/api/public/send-contact'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/form' | '/api/public/send-contact'
-  id: '__root__' | '/' | '/form' | '/api/public/send-contact'
+  to:
+    | '/'
+    | '/form'
+    | '/api/public/create-video-upload'
+    | '/api/public/send-contact'
+  id:
+    | '__root__'
+    | '/'
+    | '/form'
+    | '/api/public/create-video-upload'
+    | '/api/public/send-contact'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   FormRoute: typeof FormRoute
+  ApiPublicCreateVideoUploadRoute: typeof ApiPublicCreateVideoUploadRoute
   ApiPublicSendContactRoute: typeof ApiPublicSendContactRoute
 }
 
@@ -82,12 +106,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSendContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/create-video-upload': {
+      id: '/api/public/create-video-upload'
+      path: '/api/public/create-video-upload'
+      fullPath: '/api/public/create-video-upload'
+      preLoaderRoute: typeof ApiPublicCreateVideoUploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   FormRoute: FormRoute,
+  ApiPublicCreateVideoUploadRoute: ApiPublicCreateVideoUploadRoute,
   ApiPublicSendContactRoute: ApiPublicSendContactRoute,
 }
 export const routeTree = rootRouteImport

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Globe2, Languages, Sparkles, Clock, ShieldCheck, TrendingUp, Check, ArrowRight, Play, Star, Quote } from "lucide-react";
+import { Globe2, Languages, Sparkles, Clock, ShieldCheck, TrendingUp, Check, ArrowRight, Play, Star, Quote, UserCheck, ThumbsUp } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import influencerImg from "@/assets/influencer.jpg";
 import globeImg from "@/assets/globe.jpg";
@@ -94,7 +94,7 @@ function Hero() {
         <div className="mt-20 grid grid-cols-3 gap-8 max-w-2xl mx-auto animate-fade-up" style={{ animationDelay: "0.4s" }}>
           {[
             { k: "+180", v: "Cursos traducidos" },
-            { k: "50+", v: "Idiomas y Dialectos" },
+            { k: "+50", v: "Idiomas y Dialectos" },
             { k: "98%", v: "Retención cliente" },
           ].map((s) => (
             <div key={s.v} className="text-center">
@@ -132,10 +132,11 @@ function Services() {
   const services = [
     { icon: Languages, title: "Traducción de audio", desc: "Adaptación de idioma completa, manteniendo tu tono, humor y autoridad." },
     { icon: Play, title: "Subtitulado profesional", desc: "Subtítulos SRT/VTT sincronizados frame a frame, listos para Kajabi, Hotmart o Teachable." },
-    { icon: Sparkles, title: "Doblaje con IA + voz humana", desc: "Clonación de tu voz en otros idiomas, revisada por actores profesionales nativos." },
-    { icon: Globe2, title: "Localización total", desc: "Workbooks, diapositivas, landing pages y emails. Tu curso entero, listo para vender." },
-    { icon: Clock, title: "Entrega express", desc: "Cursos completos en 14 días. Modelo dedicado para influencers de alto volumen." },
+    { icon: UserCheck, title: "Contenido revisado", desc: "Clonación de tu voz en otro idiomas, revisado por profesionales nativos." },
+    { icon: ThumbsUp, title: "Facil de implementar", desc: "En cuenstión de minutos podrás integrar el contenido adaptado en tu curso y empezar a venderlo internacionalmente." },
+    { icon: Clock, title: "Entrega express", desc: "Cursos completos en 14 días. Modelo dedicado para cursos de alto volumen." },
     { icon: ShieldCheck, title: "NDA & confidencialidad", desc: "Tu contenido nunca sale de nuestro estudio. Acuerdos blindados desde el día uno." },
+    
   ];
 
   return (
@@ -156,24 +157,37 @@ function Services() {
             </div>
           ))}
         </div>
-      </div>
-    </section>
-  );
-}
+        <p
+          className="text-ml font-medium tracking-wide px-4 py-8 animate-shimmer" style={{
+            backgroundImage:
+              "linear-gradient(90deg, #7a5c1e 0%, #d4af37 20%, #7a5c1e 40%, #6b6e72 60%, #7a5c1e 80%, #8a8d91 100%)",
+            backgroundSize: "200% auto",
+            WebkitBackgroundClip: "text",
+            backgroundClip: "text",
+            color: "transparent",
+            animationDuration: "10s",
+          }}
+        >
+          Gracias a estos servicios, consigue más idiomas, más mercados, más ventas..
+        </p>
+              </div>
+            </section>
+          );
+        }
 
 function Process() {
   const steps = [
     { n: "01", t: "Análisis & estrategia", d: "Estudiamos tu curso, audiencia objetivo y mercados con mayor potencial de conversión." },
-    { n: "02", t: "Traducción experta", d: "Equipo de lingüistas nativos especializados en infoproductos y marketing digital." },
+    { n: "02", t: "Traducción experta", d: "Contamos con lingüistas nativos especializados en marketing digital." },
     { n: "03", t: "Producción audiovisual", d: "Doblaje, subtitulado y mezcla de audio en nuestro estudio con calidad broadcast." },
     { n: "04", t: "QA & entrega", d: "Triple revisión, sincronización perfecta y entrega lista para tu plataforma." },
   ];
 
   return (
-    <section id="proceso" className="relative py-32 px-6 lg:px-10 bg-card/40">
+    <section id="proceso" className="relative py-18 px-6 lg:px-10 bg-card/40">
       <div className="max-w-7xl mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-20">
-          <div className="text-xs uppercase tracking-[0.3em] text-primary mb-4">— Cómo trabajamos</div>
+          <div className="text-xs uppercase tracking-[0.3em] text-primary mb-4">— Cómo trabajamos —</div>
           <h2 className="text-4xl lg:text-6xl font-display">Un proceso <span className="text-gold-gradient italic">impecable</span></h2>
         </div>
 
@@ -215,20 +229,19 @@ function Showcase() {
         </div>
 
         <div>
-          <div className="text-xs uppercase tracking-[0.3em] text-primary mb-4">— Más que traducir</div>
+          <div className="text-xs uppercase tracking-[0.3em] text-primary mb-4">— Más que traducir —</div>
           <h2 className="text-4xl lg:text-5xl font-display mb-6">
-            Convertimos tu curso en un <span className="text-gold-gradient italic">activo global</span>
+            Haz que tu contenido llegue <span className="text-gold-gradient italic">más lejos</span>
           </h2>
           <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-            No solo traducimos palabras: trasladamos tu energía, tu marca y tu mensaje a cada cultura.
-            El resultado es un curso que se siente nativo en cualquier idioma —y vende como tal.
+            Nuestro sistema permite que tu audiencia internacional te escuche como si estuvieras hablando su idioma de forma natural, sin necesidad de volver a grabar cursos, vídeos o clases completas.
           </p>
           <ul className="space-y-4">
             {[
-              "Equipo dedicado de project manager + 3 lingüistas",
-              "Glosario y guía de estilo personalizada por marca",
-              "Voces clonadas con autorización legal completa",
+              "Otros creadores ya están vendiendo mundialmente",
               "Garantía de revisión ilimitada hasta tu visto bueno",
+              "Haz crecer tu negocio sin complicaciones",
+              "Tu voz no debería tener fronteras",
             ].map((p) => (
               <li key={p} className="flex items-start gap-3">
                 <div className="mt-1 w-5 h-5 rounded-full bg-gold-gradient flex items-center justify-center flex-shrink-0">
@@ -252,10 +265,10 @@ function Stats() {
         <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/40" />
         <div className="relative grid md:grid-cols-4 gap-12 p-16 lg:p-24">
           {[
-            { k: "$12M+", v: "Generados para clientes" },
+            { k: "+560k", v: "Generados para clientes" },
             { k: "180+", v: "Cursos lanzados" },
-            { k: "30", v: "Idiomas activos" },
-            { k: "14d", v: "Tiempo promedio" },
+            { k: "+50", v: "Idiomas activos" },
+            { k: "7d", v: "Tiempo promedio" },
           ].map((s) => (
             <div key={s.v}>
               <div className="text-5xl lg:text-6xl font-display text-gold-gradient">{s.k}</div>
@@ -270,15 +283,15 @@ function Stats() {
 
 function Testimonials() {
   const items = [
-    { q: "Triplicamos ventas en Brasil en 60 días. Calidad de doblaje irreal —parece que yo mismo hablo portugués.", a: "Carlos Mendoza", r: "Mentor de ventas, 2.4M IG" },
-    { q: "Llevaba años intentando entrar al mercado anglosajón. LUMINA lo logró en una semana de trabajo.", a: "Sofía Velarde", r: "Creadora de cursos de marca personal" },
-    { q: "El proceso es de boutique de lujo. Project manager dedicada, entregas siempre antes de tiempo.", a: "Diego Aramburu", r: "Coach de productividad, 850k YT" },
+    { q: "Triplicamos ventas en Francia en 60 días. Calidad de doblaje excelente —parece que yo mismo hablo francés.", a: "Eneko Ipinza", r: "Mentor de ventas" },
+    { q: "Llevaba años intentando entrar al mercado anglosajón. ETHOS lo logró en una semana de trabajo.", a: "Ugaitz Ugalde", r: "Creador de cursos de marca personal" },
+    { q: "El proceso es de boutique de lujo. Project manager dedicada, entregas siempre antes de tiempo.", a: "Darik Rodriguez", r: "Coach de productividad" },
   ];
   return (
     <section id="testimonios" className="relative py-32 px-6 lg:px-10 bg-card/40">
       <div className="max-w-7xl mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-20">
-          <div className="text-xs uppercase tracking-[0.3em] text-primary mb-4">— Voces de creadores</div>
+          <div className="text-xs uppercase tracking-[0.3em] text-primary mb-4">— Voces de creadores —</div>
           <h2 className="text-4xl lg:text-6xl font-display">Resultados que <span className="text-gold-gradient italic">hablan</span></h2>
         </div>
         <div className="grid md:grid-cols-3 gap-6">
@@ -308,23 +321,20 @@ function Testimonials() {
 function Pricing() {
   const plans = [
     {
-      name: "Essential",
-      p: "$2,900",
+      p: "Essential",
       d: "Para cursos de hasta 5h",
       f: ["Traducción a 1 idioma", "Subtitulado profesional", "1 revisión incluida", "Entrega en 21 días"],
       cta: "Empezar",
       highlight: false,
     },
     {
-      name: "Premium",
-      p: "$6,500",
+      p: "Premium",
       d: "Para cursos hasta 15h",
       f: ["Traducción a 3 idiomas", "Subtitulado + doblaje IA", "Localización de materiales", "Project manager dedicado", "Revisiones ilimitadas", "Entrega en 14 días"],
       cta: "Plan más elegido",
       highlight: true,
     },
     {
-      name: "Empire",
       p: "Custom",
       d: "Para imperios digitales",
       f: ["10+ idiomas simultáneos", "Doblaje con clonación de voz", "Suite completa de marketing", "Equipo dedicado fulltime", "SLA priority", "Soporte 24/7"],
@@ -336,7 +346,7 @@ function Pricing() {
     <section id="precios" className="relative py-32 px-6 lg:px-10">
       <div className="max-w-7xl mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-20">
-          <div className="text-xs uppercase tracking-[0.3em] text-primary mb-4">— Inversión</div>
+          <div className="text-xs uppercase tracking-[0.3em] text-primary mb-4">— Inversión —</div>
           <h2 className="text-4xl lg:text-6xl font-display">Planes <span className="text-gold-gradient italic">a tu medida</span></h2>
           <p className="mt-6 text-muted-foreground">Cada curso es único. Estos son nuestros puntos de partida.</p>
         </div>
@@ -364,6 +374,10 @@ function Pricing() {
             </div>
           ))}
         </div>
+        <a 
+        className="mt-16 max-w-md mx-auto text-center text-base text-primary font-medium">
+          Cada precio se puede adaptar a un presupuesto
+        </a>
       </div>
     </section>
   );
@@ -372,7 +386,7 @@ function Pricing() {
 function FAQ() {
   const [open, setOpen] = useState<number | null>(0);
   const faqs = [
-    { q: "¿En cuánto tiempo entregan un curso completo?", a: "Plan Premium: 14 días para cursos de hasta 15 horas. Empire: cronograma personalizado según volumen." },
+    { q: "¿En cuánto tiempo entregan un curso completo?", a: "Plan Premium: 14 días para cursos de hasta 15 horas. Custom: cronograma personalizado según volumen." },
     { q: "¿Puedo clonar mi voz de forma legal?", a: "Sí. Usamos tecnología con autorización contractual completa. Tú mantienes 100% el control de tu voz." },
     { q: "¿Trabajan con plataformas como Hotmart o Kajabi?", a: "Sí. Entregamos archivos en cualquier formato compatible con tu plataforma, listos para subir." },
     { q: "¿Qué pasa si no quedo satisfecho?", a: "Revisiones ilimitadas hasta tu aprobación. Si aún así no estás conforme, devolvemos el 100%." },
@@ -381,7 +395,7 @@ function FAQ() {
     <section className="relative py-32 px-6 lg:px-10 bg-card/40">
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-16">
-          <div className="text-xs uppercase tracking-[0.3em] text-primary mb-4">— Preguntas</div>
+          <div className="text-xs uppercase tracking-[0.3em] text-primary mb-4">— FAQ —</div>
           <h2 className="text-4xl lg:text-5xl font-display">Lo que más nos <span className="text-gold-gradient italic">preguntan</span></h2>
         </div>
         <div className="space-y-3">
@@ -393,11 +407,15 @@ function FAQ() {
             >
               <div className="flex items-center justify-between gap-4">
                 <span className="text-lg font-medium">{f.q}</span>
-                <span className={`text-primary text-2xl transition ${open === i ? "rotate-45" : ""}`}>+</span>
+                <span className={`text-primary text-2xl transition-transform duration-300 ${open === i ? "rotate-45" : ""}`}>+</span>
               </div>
-              {open === i && (
-                <p className="mt-4 text-muted-foreground leading-relaxed">{f.a}</p>
-              )}
+              <div
+                className={`grid transition-all duration-300 ease-in-out ${
+                  open === i ? "grid-rows-[1fr] opacity-100 mt-4" : "grid-rows-[0fr] opacity-0 mt-0"
+                }`}
+              >
+                <p className="overflow-hidden text-muted-foreground leading-relaxed">{f.a}</p>
+              </div>
             </button>
           ))}
         </div>

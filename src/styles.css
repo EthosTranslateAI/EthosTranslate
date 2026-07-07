@@ -124,3 +124,25 @@
 @utility animate-fade-up {
   animation: fadeUp 0.8s ease-out both;
 }
+
+.scrollbar-thin-gold {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklch, var(--primary) 40%, transparent) transparent;
+}
+
+.scrollbar-thin-gold::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin-gold::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin-gold::-webkit-scrollbar-thumb {
+  background-color: color-mix(in oklch, var(--primary) 40%, transparent);
+  border-radius: 999px;
+}
+
+.scrollbar-thin-gold::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in oklch, var(--primary) 70%, transparent);
+}

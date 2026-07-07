@@ -231,7 +231,7 @@ function Showcase() {
         <div>
           <div className="text-xs uppercase tracking-[0.3em] text-primary mb-4">— Más que traducir —</div>
           <h2 className="text-4xl lg:text-5xl font-display mb-6">
-            Haz que tu contenido llegue <span className="text-gold-gradient italic">más lejos</span>
+            El mundo está listo para <span className="text-gold-gradient italic">escucharte</span>
           </h2>
           <p className="text-lg text-muted-foreground leading-relaxed mb-8">
             Nuestro sistema permite que tu audiencia internacional te escuche como si estuvieras hablando su idioma de forma natural, sin necesidad de volver a grabar cursos, vídeos o clases completas.
@@ -342,6 +342,7 @@ function Pricing() {
       highlight: false,
     },
   ];
+
   return (
     <section id="precios" className="relative py-32 px-6 lg:px-10">
       <div className="max-w-7xl mx-auto">
@@ -352,32 +353,30 @@ function Pricing() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {plans.map((p) => (
-            <div key={p.name} className={`relative rounded-3xl p-10 border transition ${p.highlight ? "border-primary bg-card shadow-glow scale-[1.02]" : "border-border bg-card/60 hover:border-primary/40"}`}>
-              {p.highlight && (
+          {plans.map((plan) => (
+            <div key={plan.p} className={`relative rounded-3xl p-10 border transition ${plan.highlight ? "border-primary bg-card shadow-glow scale-[1.02]" : "border-border bg-card/60 hover:border-primary/40"}`}>
+              {plan.highlight && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gold-gradient text-primary-foreground text-xs uppercase tracking-widest">Más popular</div>
               )}
-              <div className="text-sm uppercase tracking-widest text-muted-foreground mb-3">{p.name}</div>
-              <div className="text-5xl font-display text-gold-gradient mb-2">{p.p}</div>
-              <div className="text-sm text-muted-foreground mb-8">{p.d}</div>
+              <div className="text-5xl font-display text-gold-gradient mb-2">{plan.p}</div>
+              <div className="text-sm text-muted-foreground mb-8">{plan.d}</div>
               <ul className="space-y-3 mb-10">
-                {p.f.map((it) => (
+                {plan.f.map((it) => (
                   <li key={it} className="flex items-start gap-3 text-sm">
                     <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                     <span>{it}</span>
                   </li>
                 ))}
               </ul>
-              <a href="#contacto" className={`block text-center px-6 py-3 rounded-full font-medium transition ${p.highlight ? "bg-gold-gradient text-primary-foreground hover:scale-[1.03]" : "border border-primary/40 text-foreground hover:bg-primary/10"}`}>
-                {p.cta}
+              <a href="#contacto" className={`block text-center px-6 py-3 rounded-full font-medium transition ${plan.highlight ? "bg-gold-gradient text-primary-foreground hover:scale-[1.03]" : "border border-primary/40 text-foreground hover:bg-primary/10"}`}>
+                {plan.cta}
               </a>
             </div>
           ))}
         </div>
-        <a 
-        className="mt-16 max-w-md mx-auto text-center text-base text-primary font-medium">
+        <p className="mt-16 max-w-md mx-auto text-center text-base text-primary font-medium">
           Cada precio se puede adaptar a un presupuesto
-        </a>
+        </p>
       </div>
     </section>
   );
@@ -453,13 +452,52 @@ function CTA() {
 function Footer() {
   return (
     <footer className="border-t border-border py-16 px-6 lg:px-10">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-8 justify-between items-start md:items-center">
-        <div>
-          <div className="text-3xl font-display text-gold-gradient">ETHOS</div>
-          <div className="text-xs uppercase tracking-[0.3em] text-muted-foreground mt-2">Translate</div>
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row gap-12 md:gap-8 justify-between">
+          {/* Marca */}
+          <div className="max-w-xs">
+            <div className="text-3xl font-display text-gold-gradient">ETHOS</div>
+            <div className="text-xs uppercase tracking-[0.3em] text-muted-foreground mt-2">Translate</div>
+          </div>
+
+          {/* Columnas de enlaces */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 flex-1 md:max-w-xl">
+            <div>
+              <div className="text-xs uppercase tracking-[0.25em] text-primary mb-4">Soporte</div>
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                <li><a href="https://wa.me/34688603317" className="hover:text-primary transition">Contacto</a></li>
+                <li><a href="mailto:hola@lumina.studio" className="hover:text-primary transition">hola@lumina.studio</a></li>
+                <li><a href="#faq" className="hover:text-primary transition">Preguntas frecuentes</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <div className="text-xs uppercase tracking-[0.25em] text-primary mb-4">Legal</div>
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                <li><Link to="/privacidad" className="hover:text-primary transition">Privacidad</Link></li>
+                <li><Link to="/terminos" className="hover:text-primary transition">Términos de servicio</Link></li>
+                <li><Link to="/cookies" className="hover:text-primary transition">Cookies</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <div className="text-xs uppercase tracking-[0.25em] text-primary mb-4">Empresa</div>
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                <li><a href="#servicios" className="hover:text-primary transition">Servicios</a></li>
+                <li><a href="#precios" className="hover:text-primary transition">Precios</a></li>
+                <li><a href="#testimonios" className="hover:text-primary transition">Casos de éxito</a></li>
+              </ul>
+            </div>
+          </div>
         </div>
-        <div className="text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Lumina Studio · Tu curso, en todo el mundo
+
+        <div className="mt-12 pt-8 border-t border-border flex flex-col sm:flex-row gap-4 justify-between items-center">
+          <div className="text-sm text-muted-foreground">
+            © {new Date().getFullYear()} Ethos Translate · Tu curso, en todo el mundo
+          </div>
+          <div className="text-xs text-muted-foreground/70">
+            Hecho con dedicación para creadores globales
+          </div>
         </div>
       </div>
     </footer>

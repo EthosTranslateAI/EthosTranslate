@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { ArrowRight, Mail, Phone, User, CheckCircle2, AlertCircle, MessageCircle, Video } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { ArrowRight, Mail, Phone, User, CheckCircle2, AlertCircle, MessageCircle, Video, ChevronDown, Languages } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/form")({
@@ -15,10 +15,21 @@ export const Route = createFileRoute("/form")({
   component: FormPage,
 });
 
-type Errors = { name?: string; email?: string; phone?: string; message?: string };
+type Errors = { name?: string; email?: string; phone?: string; idioma?: string; message?: string };
+
+const IDIOMAS = [
+  { value: "en", label: "Inglés" },
+  { value: "fr", label: "Francés" },
+  { value: "de", label: "Alemán" },
+  { value: "it", label: "Italiano" },
+  { value: "pt", label: "Portugués" },
+  { value: "zh", label: "Chino (mandarín)" },
+  { value: "ar", label: "Árabe" },
+  { value: "ja", label: "Japonés" },
+] as const;
 
 function FormPage() {
-  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", idioma: "", message: "" });
   const [errors, setErrors] = useState<Errors>({});
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -37,13 +48,16 @@ function FormPage() {
 
     if (!form.phone.trim()) e.phone = "El teléfono es obligatorio";
     else if (!/^[\d\s+()-]{6,40}$/.test(form.phone)) e.phone = "Teléfono inválido";
+
+    if (!form.idioma) e.idioma = "Selecciona un idioma de destino";
+
     if (videoMode === "link" && videoLink.trim() && !/^https?:\/\/.+/.test(videoLink)) {
       setVideoError("El enlace debe empezar por http:// o https://");
     } else {
       setVideoError("");
     }
 
-    return e
+    return e;
   };
 
   const onSubmit = async (ev: React.FormEvent) => {
@@ -60,23 +74,11 @@ function FormPage() {
       let videoLinkToSend: string | undefined;
 
       if (videoMode === "file" && videoFile) {
-        const signRes = await fetch("/api/public/create-video-upload", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            filename: videoFile.name,
-            size: videoFile.size,
-            contentType: videoFile.type || "video/mp4",
-          }),
-        });
-        if (!signRes.ok) {
-          const data = await signRes.json().catch(() => ({}));
-          throw new Error(data.error || "No se pudo preparar la subida del video");
-        }
-        const { path, token } = await signRes.json();
+        const cleanName = videoFile.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80);
+        const path = `contact/${crypto.randomUUID()}-${cleanName}`;
         const { error: upErr } = await supabase.storage
           .from("videos")
-          .uploadToSignedUrl(path, token, videoFile, {
+          .upload(path, videoFile, {
             contentType: videoFile.type || "video/mp4",
             upsert: false,
           });
@@ -96,7 +98,7 @@ function FormPage() {
         throw new Error(data.error || "No se pudo enviar el mensaje");
       }
       setStatus("success");
-      setForm({ name: "", email: "", phone: "", message: "" });
+      setForm({ name: "", email: "", phone: "", idioma: "", message: "" });
       setVideoFile(null);
       setVideoLink("");
     } catch (err) {
@@ -162,10 +164,18 @@ function FormPage() {
                 label={<>Mensaje <span className="text-muted-foreground/50">(opcional)</span></>}
                 name="message"
                 value={form.message}
-                onChange={(v) => setForm({...form, message: v})}
+                onChange={(v) => setForm({ ...form, message: v })}
                 placeholder="Escribe aqui tu mensaje"
                 autoComplete="off"
               />
+
+              <LanguageSelect
+                value={form.idioma}
+                onChange={(v) => setForm({ ...form, idioma: v })}
+                options={IDIOMAS}
+                error={errors.idioma}
+              />
+
               <VideoField
                 mode={videoMode}
                 onModeChange={setVideoMode}
@@ -174,7 +184,7 @@ function FormPage() {
                 link={videoLink}
                 onLinkChange={setVideoLink}
                 error={videoError}
-/>
+              />
 
               <button
                 type="submit"
@@ -206,6 +216,96 @@ function FormPage() {
   );
 }
 
+function LanguageSelect({
+  value,
+  onChange,
+  options,
+  error,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: readonly { value: string; label: string }[];
+  error?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selected = options.find((o) => o.value === value);
+
+  return (
+    <div ref={ref} className="relative">
+      <label className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
+        <span className="text-primary"><Languages className="w-4 h-4" /></span>
+        Idioma de traducción
+      </label>
+
+      <div className={`relative overflow-hidden rounded-2xl border ${error ? "border-destructive/60" : open ? "border-primary/40" : "border-border"} bg-background/60 transition-colors`}>
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-invalid={!!error}
+          aria-expanded={open}
+          className={`w-full flex items-center justify-between px-5 py-3.5 ${
+            selected ? "text-foreground" : "text-muted-foreground/50"
+          } focus:outline-none transition`}
+        >
+          <span>{selected ? selected.label : "Selecciona a qué idioma quieres traducir el video"}</span>
+          <ChevronDown
+            className={`w-4 h-4 text-primary transition-transform duration-300 flex-shrink-0 ml-2 ${
+              open ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+
+        <div
+          className={`grid transition-all duration-300 ease-out ${
+            open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0 pointer-events-none"
+          }`}
+        >
+          <div className="overflow-hidden">
+            <div className="max-h-48 overflow-y-auto scrollbar-thin-gold border-t border-primary/20 py-1.5 pl-1.5 pr-3">
+              {options.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => {
+                    onChange(opt.value);
+                    setOpen(false);
+                  }}
+                  className={`w-full text-left px-4 py-2.5 rounded-xl text-sm transition-colors ${
+                    opt.value === value
+                      ? "bg-gold-gradient text-primary-foreground"
+                      : "text-foreground hover:bg-secondary"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {error && (
+        <p className="mt-2 text-xs text-destructive flex items-center gap-1">
+          <AlertCircle className="w-3 h-3" /> {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+
 function VideoField({
   mode, onModeChange, file, onFileChange, link, onLinkChange, error,
 }: {
@@ -225,14 +325,13 @@ function VideoField({
       </label>
 
       <div className="relative inline-flex p-1 rounded-full bg-background/60 border border-border mb-3">
-  {/* Fondo que se desliza */}
-  <div
-    className="absolute top-1 bottom-1 left-1 rounded-full bg-gold-gradient transition-transform duration-300 ease-out"
-    style={{
-      width: "calc(50% - 4px)",
-      transform: mode === "link" ? "translateX(100%)" : "translateX(0%)",
-    }}
-  />
+        <div
+          className="absolute top-1 bottom-1 left-1 rounded-full bg-gold-gradient transition-transform duration-300 ease-out"
+          style={{
+            width: "calc(50% - 4px)",
+            transform: mode === "link" ? "translateX(100%)" : "translateX(0%)",
+          }}
+        />
 
         <button
           type="button"
@@ -259,7 +358,16 @@ function VideoField({
           <input
             type="file"
             accept="video/*"
-            onChange={(e) => onFileChange(e.target.files?.[0] ?? null)}
+            onChange={(e) => {
+              const f = e.target.files?.[0] ?? null;
+              if (f && f.size > 25 * 1024 * 1024) {
+                alert("El video pesa más de 25 MB. Por favor usa la opción 'Pegar enlace' en su lugar (por ejemplo subiéndolo a Google Drive o YouTube).");
+                e.target.value = "";
+                onFileChange(null);
+                return;
+              }
+              onFileChange(f);
+            }}
             className="w-full text-sm text-muted-foreground file:mr-4 file:px-4 file:py-2.5 file:rounded-full file:border-0 file:bg-gold-gradient file:text-primary-foreground file:cursor-pointer cursor-pointer"
           />
           {file && (

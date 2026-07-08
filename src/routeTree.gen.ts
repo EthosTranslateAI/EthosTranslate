@@ -9,11 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PrivacidadRouteImport } from './routes/privacidad'
 import { Route as FormRouteImport } from './routes/form'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiPublicSendContactRouteImport } from './routes/api/public/send-contact'
 import { Route as ApiPublicCreateVideoUploadRouteImport } from './routes/api/public/create-video-upload'
 
+const PrivacidadRoute = PrivacidadRouteImport.update({
+  id: '/privacidad',
+  path: '/privacidad',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FormRoute = FormRouteImport.update({
   id: '/form',
   path: '/form',
@@ -39,12 +45,14 @@ const ApiPublicCreateVideoUploadRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/form': typeof FormRoute
+  '/privacidad': typeof PrivacidadRoute
   '/api/public/create-video-upload': typeof ApiPublicCreateVideoUploadRoute
   '/api/public/send-contact': typeof ApiPublicSendContactRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/form': typeof FormRoute
+  '/privacidad': typeof PrivacidadRoute
   '/api/public/create-video-upload': typeof ApiPublicCreateVideoUploadRoute
   '/api/public/send-contact': typeof ApiPublicSendContactRoute
 }
@@ -52,6 +60,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/form': typeof FormRoute
+  '/privacidad': typeof PrivacidadRoute
   '/api/public/create-video-upload': typeof ApiPublicCreateVideoUploadRoute
   '/api/public/send-contact': typeof ApiPublicSendContactRoute
 }
@@ -60,18 +69,21 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/form'
+    | '/privacidad'
     | '/api/public/create-video-upload'
     | '/api/public/send-contact'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/form'
+    | '/privacidad'
     | '/api/public/create-video-upload'
     | '/api/public/send-contact'
   id:
     | '__root__'
     | '/'
     | '/form'
+    | '/privacidad'
     | '/api/public/create-video-upload'
     | '/api/public/send-contact'
   fileRoutesById: FileRoutesById
@@ -79,12 +91,20 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   FormRoute: typeof FormRoute
+  PrivacidadRoute: typeof PrivacidadRoute
   ApiPublicCreateVideoUploadRoute: typeof ApiPublicCreateVideoUploadRoute
   ApiPublicSendContactRoute: typeof ApiPublicSendContactRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/privacidad': {
+      id: '/privacidad'
+      path: '/privacidad'
+      fullPath: '/privacidad'
+      preLoaderRoute: typeof PrivacidadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/form': {
       id: '/form'
       path: '/form'
@@ -119,6 +139,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   FormRoute: FormRoute,
+  PrivacidadRoute: PrivacidadRoute,
   ApiPublicCreateVideoUploadRoute: ApiPublicCreateVideoUploadRoute,
   ApiPublicSendContactRoute: ApiPublicSendContactRoute,
 }

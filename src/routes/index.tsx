@@ -391,7 +391,7 @@ function FAQ() {
     { q: "¿Qué pasa si no quedo satisfecho?", a: "Revisiones ilimitadas hasta tu aprobación. Si aún así no estás conforme, devolvemos el 100%." },
   ];
   return (
-    <section className="relative py-32 px-6 lg:px-10 bg-card/40">
+    <section id="faq" className="relative py-32 px-6 lg:px-10 bg-card/40">
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-16">
           <div className="text-xs uppercase tracking-[0.3em] text-primary mb-4">— FAQ —</div>
@@ -462,11 +462,22 @@ function Footer() {
 
           {/* Columnas de enlaces */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 flex-1 md:max-w-xl">
-            <div>
+            <div className="-ml-6">
               <div className="text-xs uppercase tracking-[0.25em] text-primary mb-4">Soporte</div>
               <ul className="space-y-3 text-sm text-muted-foreground">
-                <li><a href="https://wa.me/34688603317" className="hover:text-primary transition">Contacto</a></li>
-                <li><a href="mailto:hola@lumina.studio" className="hover:text-primary transition">hola@lumina.studio</a></li>
+                <li><a 
+                  href="https://wa.me/34688603317"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-primary transition">Contacto</a></li>
+                <li><a 
+                  href="https://mail.google.com/mail/?view=cm&fs=1&to=ethostranslate@gmail.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                 className="hover:text-primary transition"
+                >
+               soporte@ethostranslate.com
+              </a></li>
                 <li><a href="#faq" className="hover:text-primary transition">Preguntas frecuentes</a></li>
               </ul>
             </div>
@@ -477,15 +488,6 @@ function Footer() {
                 <li><Link to="/privacidad" className="hover:text-primary transition">Privacidad</Link></li>
                 <li><Link to="/terminos" className="hover:text-primary transition">Términos de servicio</Link></li>
                 <li><Link to="/cookies" className="hover:text-primary transition">Cookies</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <div className="text-xs uppercase tracking-[0.25em] text-primary mb-4">Empresa</div>
-              <ul className="space-y-3 text-sm text-muted-foreground">
-                <li><a href="#servicios" className="hover:text-primary transition">Servicios</a></li>
-                <li><a href="#precios" className="hover:text-primary transition">Precios</a></li>
-                <li><a href="#testimonios" className="hover:text-primary transition">Casos de éxito</a></li>
               </ul>
             </div>
           </div>

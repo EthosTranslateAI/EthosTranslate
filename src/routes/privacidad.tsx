@@ -159,16 +159,6 @@ function PrivacidadPage() {
                 en esta misma página, indicando la fecha de la última actualización.
               </p>
             </section>
-
-            <section>
-                <h2 className="text-2xl font-display text-foreground mb-3">12. Devolución de intereses</h2>
-                <p>
-                    El usuario dispone de 48 horas para reclamar su insatisfacción con el servicio ofrecido por la agencia. 
-                    En caso de que la reclamación proceda, dicha insatisfacción deberá ser demostrada para que se ejecute 
-                    el reembolso del 100% del capital invertido. Además, el curso deberá cumplir con al menos 10 horas de 
-                    contenido traducido y haber sido traducido, como mínimo, a tres idiomas diferentes.
-                </p>
-            </section>
           </div>
         </div>
       </section>

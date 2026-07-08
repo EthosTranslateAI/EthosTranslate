@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { Globe2, Languages, Sparkles, Clock, ShieldCheck, TrendingUp, Check, ArrowRight, Play, Star, Quote, UserCheck, ThumbsUp } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Languages, Sparkles, Clock, ShieldCheck, TrendingUp, Check, ArrowRight, Play, Star, Quote, UserCheck, ThumbsUp } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import influencerImg from "@/assets/influencer.jpg";
 import globeImg from "@/assets/globe.jpg";
@@ -49,7 +49,7 @@ function Nav() {
           <li><a href="#proceso" className="hover:text-primary transition">Proceso</a></li>
           <li><a href="#precios" className="hover:text-primary transition">Precios</a></li>
           <li><a href="#testimonios" className="hover:text-primary transition">Casos</a></li>
-          <li><Link to="/form" className="hover:text-primary transition">Contáctanos</Link></li>
+          <li><a href="#footer" className="hover:text-primary transition">Contáctanos</a></li>
         </ul>
         <Link to="/form" className="group relative inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gold-gradient text-primary-foreground text-sm font-medium shadow-glow hover:scale-[1.03] transition">
           Obten tu DEMO personal <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition" />
@@ -436,12 +436,16 @@ function CTA() {
           Agenda una llamada de 20 min. Sin compromiso. Te mostramos exactamente cómo llevaríamos tu curso al mundo.
         </p>
         <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
-          <a href="mailto:hola@lumina.studio" className="inline-flex items-center gap-2 px-10 py-5 rounded-full bg-gold-gradient text-primary-foreground font-medium text-lg shadow-glow hover:scale-[1.03] transition">
+          <a href="https://calendly.com/ethostranslate/llamada-informativa" className="inline-flex items-center gap-2 px-10 py-5 rounded-full bg-gold-gradient text-primary-foreground font-medium text-lg shadow-glow hover:scale-[1.03] transition">
             Agendar llamada <ArrowRight className="w-5 h-5" />
           </a>
-          <a href="https://wa.me/" className="inline-flex items-center gap-2 px-10 py-5 rounded-full border border-primary/40 text-foreground hover:bg-primary/10 transition">
+          <li><a 
+            href="https://wa.me/+34688603317"
+            target="_blank"
+            rel="noopener noreferrer" 
+            className="inline-flex items-center gap-2 px-10 py-5 rounded-full border border-primary/40 text-foreground hover:bg-primary/10 transition">
             WhatsApp directo
-          </a>
+          </a></li>
         </div>
         <div className="mt-8 text-xs uppercase tracking-[0.25em] text-muted-foreground">Respuesta en menos de 4 horas hábiles</div>
       </div>
@@ -451,9 +455,9 @@ function CTA() {
 
 function Footer() {
   return (
-    <footer className="border-t border-border py-16 px-6 lg:px-10">
+    <section id="footer" className="border-t border-border py-16 px-6 lg:px-10">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row gap-12 md:gap-8 justify-between">
+        <div className="flex flex-col md:flex-row gap-12 justify-between">
           {/* Marca */}
           <div className="max-w-xs">
             <div className="text-3xl font-display text-gold-gradient">ETHOS</div>
@@ -461,8 +465,8 @@ function Footer() {
           </div>
 
           {/* Columnas de enlaces */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 flex-1 md:max-w-xl">
-            <div className="-ml-6">
+          <div className="flex gap-16">
+            <div>
               <div className="text-xs uppercase tracking-[0.25em] text-primary mb-4">Soporte</div>
               <ul className="space-y-3 text-sm text-muted-foreground">
                 <li><a 
@@ -470,8 +474,8 @@ function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-primary transition">Contacto</a></li>
-                <li><a 
-                  href="https://mail.google.com/mail/?view=cm&fs=1&to=ethostranslate@gmail.com" 
+                <li><a
+                href="https://mail.google.com/mail/?view=cm&fs=1&to=ethostranslate@gmail.com" 
                   target="_blank" 
                   rel="noopener noreferrer"
                  className="hover:text-primary transition"
@@ -502,6 +506,6 @@ function Footer() {
           </div>
         </div>
       </div>
-    </footer>
+    </section>
   );
 }

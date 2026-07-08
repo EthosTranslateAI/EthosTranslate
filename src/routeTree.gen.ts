@@ -9,12 +9,19 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TerminosRouteImport } from './routes/terminos'
 import { Route as PrivacidadRouteImport } from './routes/privacidad'
 import { Route as FormRouteImport } from './routes/form'
+import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiPublicSendContactRouteImport } from './routes/api/public/send-contact'
 import { Route as ApiPublicCreateVideoUploadRouteImport } from './routes/api/public/create-video-upload'
 
+const TerminosRoute = TerminosRouteImport.update({
+  id: '/terminos',
+  path: '/terminos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacidadRoute = PrivacidadRouteImport.update({
   id: '/privacidad',
   path: '/privacidad',
@@ -23,6 +30,11 @@ const PrivacidadRoute = PrivacidadRouteImport.update({
 const FormRoute = FormRouteImport.update({
   id: '/form',
   path: '/form',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CookiesRoute = CookiesRouteImport.update({
+  id: '/cookies',
+  path: '/cookies',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -44,23 +56,29 @@ const ApiPublicCreateVideoUploadRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cookies': typeof CookiesRoute
   '/form': typeof FormRoute
   '/privacidad': typeof PrivacidadRoute
+  '/terminos': typeof TerminosRoute
   '/api/public/create-video-upload': typeof ApiPublicCreateVideoUploadRoute
   '/api/public/send-contact': typeof ApiPublicSendContactRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cookies': typeof CookiesRoute
   '/form': typeof FormRoute
   '/privacidad': typeof PrivacidadRoute
+  '/terminos': typeof TerminosRoute
   '/api/public/create-video-upload': typeof ApiPublicCreateVideoUploadRoute
   '/api/public/send-contact': typeof ApiPublicSendContactRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cookies': typeof CookiesRoute
   '/form': typeof FormRoute
   '/privacidad': typeof PrivacidadRoute
+  '/terminos': typeof TerminosRoute
   '/api/public/create-video-upload': typeof ApiPublicCreateVideoUploadRoute
   '/api/public/send-contact': typeof ApiPublicSendContactRoute
 }
@@ -68,36 +86,51 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/cookies'
     | '/form'
     | '/privacidad'
+    | '/terminos'
     | '/api/public/create-video-upload'
     | '/api/public/send-contact'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/cookies'
     | '/form'
     | '/privacidad'
+    | '/terminos'
     | '/api/public/create-video-upload'
     | '/api/public/send-contact'
   id:
     | '__root__'
     | '/'
+    | '/cookies'
     | '/form'
     | '/privacidad'
+    | '/terminos'
     | '/api/public/create-video-upload'
     | '/api/public/send-contact'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CookiesRoute: typeof CookiesRoute
   FormRoute: typeof FormRoute
   PrivacidadRoute: typeof PrivacidadRoute
+  TerminosRoute: typeof TerminosRoute
   ApiPublicCreateVideoUploadRoute: typeof ApiPublicCreateVideoUploadRoute
   ApiPublicSendContactRoute: typeof ApiPublicSendContactRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terminos': {
+      id: '/terminos'
+      path: '/terminos'
+      fullPath: '/terminos'
+      preLoaderRoute: typeof TerminosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/privacidad': {
       id: '/privacidad'
       path: '/privacidad'
@@ -110,6 +143,13 @@ declare module '@tanstack/react-router' {
       path: '/form'
       fullPath: '/form'
       preLoaderRoute: typeof FormRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cookies': {
+      id: '/cookies'
+      path: '/cookies'
+      fullPath: '/cookies'
+      preLoaderRoute: typeof CookiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -138,8 +178,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CookiesRoute: CookiesRoute,
   FormRoute: FormRoute,
   PrivacidadRoute: PrivacidadRoute,
+  TerminosRoute: TerminosRoute,
   ApiPublicCreateVideoUploadRoute: ApiPublicCreateVideoUploadRoute,
   ApiPublicSendContactRoute: ApiPublicSendContactRoute,
 }

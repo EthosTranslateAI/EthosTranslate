@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
-import { Languages, Sparkles, Clock, ShieldCheck, TrendingUp, Check, ArrowRight, Play, Star, Quote, UserCheck, ThumbsUp } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Languages, Sparkles, Clock, ShieldCheck, TrendingUp, Check, ArrowRight, Play, Star, Quote, UserCheck, ThumbsUp, Volume2, VolumeX } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import influencerImg from "@/assets/influencer.jpg";
 import globeImg from "@/assets/globe.jpg";
@@ -27,6 +27,7 @@ function Landing() {
       <Process />
       <Showcase />
       <Stats />
+      <VideoShowcase />
       <Testimonials />
       <Pricing />
       <FAQ />
@@ -281,6 +282,222 @@ function Stats() {
   );
 }
 
+function VideoShowcase() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [playing, setPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [current, setCurrent] = useState(0);
+  const [muted, setMuted] = useState(false);
+  const [hovering, setHovering] = useState(false);
+  const [lang, setLang] = useState("es");
+
+  const languages = [
+    { code: "es", label: "Español", flagUrl: "https://flagcdn.com/es.svg", src: "/assets/video-es.mp4" },
+    { code: "en", label: "English", flagUrl: "https://flagcdn.com/gb.svg", src: "/assets/video-en.mp4" },
+    { code: "ch", label: "Chino", flagUrl: "https://flagcdn.com/cn.svg", src: "/assets/video-ch.mp4" },
+    { code: "de", label: "Deutsch", flagUrl: "https://flagcdn.com/de.svg", src: "/assets/video-de.mp4" },
+  ];
+
+  const activeLang = languages.find((l) => l.code === lang)!;
+
+  const formatTime = (t: number) => {
+    if (!isFinite(t)) return "00:00";
+    const m = Math.floor(t / 60).toString().padStart(2, "0");
+    const s = Math.floor(t % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+  };
+
+  const togglePlay = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    if (v.paused) {
+      v.play();
+      setPlaying(true);
+    } else {
+      v.pause();
+      setPlaying(false);
+    }
+  };
+
+  const toggleMute = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = !v.muted;
+    setMuted(v.muted);
+  };
+
+  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+    const v = videoRef.current;
+    if (!v || !duration) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pct = (e.clientX - rect.left) / rect.width;
+    v.currentTime = pct * duration;
+  };
+
+  const selectLang = (code: string) => {
+    if (code === lang) return;
+    setLang(code);
+    setPlaying(false);
+    setProgress(0);
+    setCurrent(0);
+    // pequeño delay para que el <video> recargue el nuevo src antes de reproducir
+    requestAnimationFrame(() => {
+      const v = videoRef.current;
+      if (v) {
+        v.load();
+      }
+    });
+  };
+
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    const onTime = () => {
+      setCurrent(v.currentTime);
+      setProgress((v.currentTime / v.duration) * 100 || 0);
+    };
+    const onMeta = () => setDuration(v.duration);
+    const onEnd = () => setPlaying(false);
+
+    v.addEventListener("timeupdate", onTime);
+    v.addEventListener("loadedmetadata", onMeta);
+    v.addEventListener("ended", onEnd);
+    return () => {
+      v.removeEventListener("timeupdate", onTime);
+      v.removeEventListener("loadedmetadata", onMeta);
+      v.removeEventListener("ended", onEnd);
+    };
+  }, [lang]);
+
+  return (
+    <section id="video-muestra" className="relative py-32 px-6 lg:px-10">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center max-w-2xl mx-auto mb-16">
+          <div className="text-xs uppercase tracking-[0.3em] text-primary mb-4">— Video de muestra —</div>
+          <h2 className="text-4xl lg:text-6xl font-display">
+            Escúchalo <span className="text-gold-gradient italic">en cualquier idioma</span>
+          </h2>
+          <p className="mt-6 text-muted-foreground">
+            El mismo fragmento de curso, doblado por ETHOS a 4 idiomas distintos.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-[280px_1fr] gap-8 items-center w-fit mx-auto">
+          {/* --- Selector de idiomas --- */}
+          <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-visible">
+            {languages.map((l) => (
+              <button
+                key={l.code}
+                onClick={() => selectLang(l.code)}
+                className={`relative flex items-center gap-4 px-5 py-4 rounded-2xl border text-left transition flex-shrink-0 md:flex-shrink w-full ${
+                  lang === l.code
+                    ? "border-primary bg-primary/10 shadow-glow"
+                    : "border-border bg-card/60 hover:border-primary/40"
+                }`}
+              >
+                <img src={l.flagUrl} alt={l.label} className="w-7 h-5 object-cover rounded-sm shadow-sm" />
+                <div className="flex-1">
+                  <div className={`font-medium ${lang === l.code ? "text-primary" : "text-foreground"}`}>
+                    {l.label}
+                  </div>
+                </div>
+                {lang === l.code && (
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* --- Video más pequeño, mismo ratio 16:9 --- */}
+          <div className="max-w-xl w-full mx-auto md:mx-0">
+            <div
+              className="relative group rounded-3xl overflow-hidden border border-primary/20 shadow-elegant bg-black"
+              onMouseEnter={() => setHovering(true)}
+              onMouseLeave={() => setHovering(false)}
+            >
+              <div className="absolute -inset-6 bg-gold-gradient opacity-10 blur-3xl rounded-full pointer-events-none" />
+
+              <video
+                ref={videoRef}
+                key={activeLang.code}
+                className="w-full aspect-video object-cover relative"
+                poster={influencerImg}
+                onClick={togglePlay}
+                playsInline
+              >
+                <source src={activeLang.src} type="video/mp4" />
+              </video>
+
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30 pointer-events-none" />
+
+              {/* esquinas HUD */}
+              {["top-3 left-3 border-t border-l", "top-3 right-3 border-t border-r", "bottom-3 left-3 border-b border-l", "bottom-3 right-3 border-b border-r"].map((pos, i) => (
+                <div key={i} className={`absolute ${pos} w-6 h-6 border-primary/60 pointer-events-none transition-opacity duration-500 ${hovering || !playing ? "opacity-100" : "opacity-0"}`} />
+              ))}
+
+              {/* badge idioma activo */}
+              <div className={`absolute top-4 left-6 flex items-center gap-2 transition-opacity duration-500 ${hovering || !playing ? "opacity-100" : "opacity-0"}`}>
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
+                </span>
+                <img src={activeLang.flagUrl} alt={activeLang.label} className="w-4 h-3 object-cover rounded-sm" />
+              <span className="text-[9px] uppercase tracking-[0.2em] text-primary/90"></span>
+              </div>
+
+              {/* botón play central */}
+              {!playing && (
+                <button
+                  onClick={togglePlay}
+                  className="absolute inset-0 m-auto w-16 h-16 rounded-full bg-gold-gradient flex items-center justify-center shadow-glow hover:scale-110 transition"
+                  aria-label="Reproducir video"
+                >
+                  <span className="absolute inset-0 rounded-full bg-primary/40 animate-ping" />
+                  <Play className="w-6 h-6 text-primary-foreground relative translate-x-0.5" fill="currentColor" />
+                </button>
+              )}
+
+              {/* controles inferiores */}
+              <div className={`absolute bottom-0 inset-x-0 px-4 pb-4 pt-8 bg-gradient-to-t from-black/80 to-transparent transition-opacity duration-500 ${hovering || !playing ? "opacity-100" : "opacity-0"}`}>
+                <div
+                  className="relative h-1 rounded-full bg-white/20 cursor-pointer mb-3 overflow-hidden"
+                  onClick={handleSeek}
+                >
+                  <div
+                    className="absolute inset-y-0 left-0 bg-gold-gradient rounded-full transition-[width] duration-150"
+                    style={{ width: `${progress}%` }}
+                  />
+                  <div
+                    className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-primary shadow-glow transition-[left] duration-150"
+                    style={{ left: `calc(${progress}% - 5px)` }}
+                  />
+                </div>
+
+                 <div className="flex items-center justify-between">
+                 <button onClick={toggleMute} className="text-foreground hover:text-primary transition">
+                  {muted ? (
+                   <VolumeX className="w-4 h-4" />
+                 ) : (
+                   <Volume2 className="w-4 h-4" />
+                 )}
+               </button>
+               <span className="text-[9px] font-mono tracking-widest text-muted-foreground">
+                  {formatTime(current)} / {formatTime(duration)}
+                </span>
+              </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Testimonials() {
   const items = [
     { q: "Triplicamos ventas en Francia en 60 días. Calidad de doblaje excelente —parece que yo mismo hablo francés.", a: "Eneko Ipinza", r: "Mentor de ventas" },
@@ -439,13 +656,13 @@ function CTA() {
           <a href="https://calendly.com/ethostranslate/llamada-informativa" className="inline-flex items-center gap-2 px-10 py-5 rounded-full bg-gold-gradient text-primary-foreground font-medium text-lg shadow-glow hover:scale-[1.03] transition">
             Agendar llamada <ArrowRight className="w-5 h-5" />
           </a>
-          <li><a 
+          <a 
             href="https://wa.me/+34688603317"
             target="_blank"
             rel="noopener noreferrer" 
             className="inline-flex items-center gap-2 px-10 py-5 rounded-full border border-primary/40 text-foreground hover:bg-primary/10 transition">
             WhatsApp directo
-          </a></li>
+          </a>
         </div>
         <div className="mt-8 text-xs uppercase tracking-[0.25em] text-muted-foreground">Respuesta en menos de 4 horas hábiles</div>
       </div>

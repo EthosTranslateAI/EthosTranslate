@@ -51,21 +51,21 @@ function FormPage() {
 
     if (!form.idioma) e.idioma = "Selecciona un idioma de destino";
 
-    if (videoMode === "link" && videoLink.trim() && !/^https?:\/\/.+/.test(videoLink)) {
-      setVideoError("El enlace debe empezar por http:// o https://");
-    } else {
-      setVideoError("");
-    }
-
     return e;
   };
 
   const onSubmit = async (ev: React.FormEvent) => {
     ev.preventDefault();
+
+    if (videoMode === "link" && videoLink.trim() && !/^https?:\/\/.+/.test(videoLink)) {
+      setVideoError("El enlace debe empezar por http:// o https://");
+      return;
+    }
+    setVideoError("");
+
     const e = validate();
     setErrors(e);
     if (Object.keys(e).length > 0) return;
-    if (videoMode === "link" && videoLink.trim() && !/^https?:\/\/.+/i.test(videoLink)) return;
 
     setStatus("sending");
     setErrorMsg("");
@@ -88,10 +88,17 @@ function FormPage() {
         videoLinkToSend = videoLink.trim();
       }
 
+      const idiomaLabel = IDIOMAS.find((i) => i.value === form.idioma)?.label ?? form.idioma;
+
       const res = await fetch("/api/public/send-contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, videoPath, videoLink: videoLinkToSend }),
+        body: JSON.stringify({
+          ...form,
+          idiomaLabel,
+          videoPath,
+          videoLink: videoLinkToSend,
+        }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -304,7 +311,6 @@ function LanguageSelect({
     </div>
   );
 }
-
 
 function VideoField({
   mode, onModeChange, file, onFileChange, link, onLinkChange, error,

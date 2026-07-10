@@ -22,7 +22,7 @@ export const Route = createFileRoute("/api/public/send-contact")({
     handlers: {
       POST: async ({ request }) => {
         try {
-          const { name, email, phone, message, videoPath, videoLink } = await request.json();
+          const { name, email, phone, message, idioma, idiomaLabel, videoPath, videoLink } = await request.json();
 
           if (!name || typeof name !== "string" || name.trim().length === 0 || name.length > 100) {
             return Response.json({ error: "Nombre inválido" }, { status: 400 });
@@ -35,6 +35,9 @@ export const Route = createFileRoute("/api/public/send-contact")({
           }
           if (message && (typeof message !== "string" || message.length > 5000)) {
             return Response.json({ error: "Mensaje inválido" }, { status: 400 });
+          }
+          if (idiomaLabel && (typeof idiomaLabel !== "string" || idiomaLabel.length > 100)) {
+            return Response.json({ error: "Idioma inválido" }, { status: 400 });
           }
           if (videoPath && (typeof videoPath !== "string" || videoPath.length > 500)) {
             return Response.json({ error: "Ruta de video inválida" }, { status: 400 });
@@ -54,42 +57,47 @@ export const Route = createFileRoute("/api/public/send-contact")({
           const safeEmail = String(email).replace(/[<>&]/g, "");
           const safePhone = String(phone).replace(/[<>&]/g, "");
           const safeMessage = message ? String(message).replace(/[<>&]/g, "").replace(/\n/g, "<br/>") : "";
+          const safeIdioma = idiomaLabel
+            ? String(idiomaLabel).replace(/[<>&]/g, "")
+            : idioma
+            ? String(idioma).replace(/[<>&]/g, "")
+            : "";
 
           let videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> <span style="color:#888;">— no adjuntado —</span></p>`;
           const attachments: Array<{ filename: string; content: string }> = [];
 
           if (videoPath && SUPABASE_SERVICE_ROLE_KEY) {
-  const encodedPath = videoPath.split("/").map(encodeURIComponent).join("/");
-  const storageHeaders = {
-    apikey: SUPABASE_SERVICE_ROLE_KEY,
-    Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-  };
+            const encodedPath = videoPath.split("/").map(encodeURIComponent).join("/");
+            const storageHeaders = {
+              apikey: SUPABASE_SERVICE_ROLE_KEY,
+              Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+            };
 
-  try {
-    const dlRes = await fetch(
-      `${SUPABASE_STORAGE_URL}/storage/v1/object/videos/${encodedPath}`,
-      { headers: storageHeaders },
-    );
-    if (!dlRes.ok) {
-      console.error("storage download failed:", dlRes.status, await dlRes.text());
-      videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> se subió pero no se pudo adjuntar al correo. Ruta: <code>${videoPath}</code></p>`;
-    } else {
-      const buf = await dlRes.arrayBuffer();
-      const filename = videoPath.split("/").pop() || "video.mp4";
-      attachments.push({
-        filename,
-        content: arrayBufferToBase64(buf),
-      });
-      videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> adjunto al correo (<code>${filename}</code> · ${(buf.byteLength / (1024 * 1024)).toFixed(1)} MB)</p>`;
-    }
-  } catch (e) {
-    console.error("download exception:", e);
-    videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> se subió pero hubo un error al adjuntarlo. Ruta: <code>${videoPath}</code></p>`;
-  }
-} else if (videoLink) {
-  const safeLink = String(videoLink).replace(/[<>"]/g, "");
-  videoBlock = `<p><strong style="color:#d4af37;">Video (enlace):</strong><br/><a href="${safeLink}" style="color:#d4af37;">${safeLink}</a></p>`;
-}
+            try {
+              const dlRes = await fetch(
+                `${SUPABASE_STORAGE_URL}/storage/v1/object/videos/${encodedPath}`,
+                { headers: storageHeaders },
+              );
+              if (!dlRes.ok) {
+                console.error("storage download failed:", dlRes.status, await dlRes.text());
+                videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> se subió pero no se pudo adjuntar al correo. Ruta: <code>${videoPath}</code></p>`;
+              } else {
+                const buf = await dlRes.arrayBuffer();
+                const filename = videoPath.split("/").pop() || "video.mp4";
+                attachments.push({
+                  filename,
+                  content: arrayBufferToBase64(buf),
+                });
+                videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> adjunto al correo (<code>${filename}</code> · ${(buf.byteLength / (1024 * 1024)).toFixed(1)} MB)</p>`;
+              }
+            } catch (e) {
+              console.error("download exception:", e);
+              videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> se subió pero hubo un error al adjuntarlo. Ruta: <code>${videoPath}</code></p>`;
+            }
+          } else if (videoLink) {
+            const safeLink = String(videoLink).replace(/[<>"]/g, "");
+            videoBlock = `<p><strong style="color:#d4af37;">Video (enlace):</strong><br/><a href="${safeLink}" style="color:#d4af37;">${safeLink}</a></p>`;
+          }
 
           const html = `
             <div style="font-family:Arial,sans-serif;background:#0a0a0a;color:#f5f5f5;padding:32px;">
@@ -97,6 +105,7 @@ export const Route = createFileRoute("/api/public/send-contact")({
               <p><strong style="color:#d4af37;">Nombre:</strong> ${safeName}</p>
               <p><strong style="color:#d4af37;">Email:</strong> ${safeEmail}</p>
               <p><strong style="color:#d4af37;">Teléfono:</strong> ${safePhone}</p>
+              ${safeIdioma ? `<p><strong style="color:#d4af37;">Idioma de traducción:</strong> ${safeIdioma}</p>` : ""}
               ${safeMessage ? `<p><strong style="color:#d4af37;">Mensaje:</strong><br/>${safeMessage}</p>` : ""}
               ${videoBlock}
               <hr style="border:none;border-top:1px solid #333;margin:24px 0;" />

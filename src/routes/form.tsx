@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
 import { ArrowRight, Mail, Phone, User, CheckCircle2, AlertCircle, MessageCircle, Video, ChevronDown, Languages } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/form")({
   head: () => ({
@@ -70,35 +69,28 @@ function FormPage() {
     setStatus("sending");
     setErrorMsg("");
     try {
-      let videoPath: string | undefined;
+      let videoBase64: string | undefined;
+      let videoFilename: string | undefined;
+      let videoContentType: string | undefined;
       let videoLinkToSend: string | undefined;
 
       if (videoMode === "file" && videoFile) {
-  // 1. Pedir al servidor una URL firmada de subida
-  const prepRes = await fetch("/api/public/create-video-upload", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      filename: videoFile.name,
-      size: videoFile.size,
-      contentType: videoFile.type || "video/mp4",
-    }),
-  });
-  if (!prepRes.ok) {
-    const data = await prepRes.json().catch(() => ({}));
-    throw new Error(data.error || "No se pudo preparar la subida del video");
-  }
-  const { path, token } = await prepRes.json();
-
-  // 2. Subir el archivo usando esa URL firmada
-  const { error: upErr } = await supabase.storage
-    .from("videos")
-    .uploadToSignedUrl(path, token, videoFile, {
-      contentType: videoFile.type || "video/mp4",
-    });
-  if (upErr) throw new Error("No se pudo subir el video: " + upErr.message);
-  videoPath = path;
-}
+        const buf = await videoFile.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+        let binary = "";
+        const chunkSize = 0x8000;
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+          binary += String.fromCharCode.apply(
+            null,
+            Array.from(bytes.subarray(i, i + chunkSize)) as unknown as number[],
+          );
+        }
+        videoBase64 = btoa(binary);
+        videoFilename = videoFile.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80);
+        videoContentType = videoFile.type || "video/mp4";
+      } else if (videoMode === "link" && videoLink.trim()) {
+        videoLinkToSend = videoLink.trim();
+      }
 
       const idiomaLabel = IDIOMAS.find((i) => i.value === form.idioma)?.label ?? form.idioma;
 
@@ -108,8 +100,10 @@ function FormPage() {
         body: JSON.stringify({
           ...form,
           idiomaLabel,
-          videoPath,
           videoLink: videoLinkToSend,
+          videoBase64,
+          videoFilename,
+          videoContentType,
         }),
       });
       if (!res.ok) {

@@ -1,28 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
-// force redeploy to pick up SERVICE_ROLE_JWT
-
-const SUPABASE_STORAGE_URL = "https://rzqtkuwvitknnkdlnrxi.supabase.co";
-
-function arrayBufferToBase64(buf: ArrayBuffer): string {
-  // Chunked to avoid call-stack overflows on large files
-  const bytes = new Uint8Array(buf);
-  let binary = "";
-  const chunkSize = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    binary += String.fromCharCode.apply(
-      null,
-      Array.from(bytes.subarray(i, i + chunkSize)) as unknown as number[],
-    );
-  }
-  return btoa(binary);
-}
 
 export const Route = createFileRoute("/api/public/send-contact")({
   server: {
     handlers: {
       POST: async ({ request }) => {
         try {
-          const { name, email, phone, message, idioma, idiomaLabel, videoPath, videoLink } = await request.json();
+          const {
+            name,
+            email,
+            phone,
+            message,
+            idioma,
+            idiomaLabel,
+            videoBase64,
+            videoFilename,
+            videoContentType,
+            videoLink,
+          } = await request.json();
 
           if (!name || typeof name !== "string" || name.trim().length === 0 || name.length > 100) {
             return Response.json({ error: "Nombre inválido" }, { status: 400 });
@@ -39,8 +33,15 @@ export const Route = createFileRoute("/api/public/send-contact")({
           if (idiomaLabel && (typeof idiomaLabel !== "string" || idiomaLabel.length > 100)) {
             return Response.json({ error: "Idioma inválido" }, { status: 400 });
           }
-          if (videoPath && (typeof videoPath !== "string" || videoPath.length > 500)) {
-            return Response.json({ error: "Ruta de video inválida" }, { status: 400 });
+          // videoBase64 de un archivo de 25MB en base64 pesa ~33-34MB de texto; damos margen hasta 35MB
+          if (videoBase64 && (typeof videoBase64 !== "string" || videoBase64.length > 35_000_000)) {
+            return Response.json({ error: "Video demasiado grande" }, { status: 400 });
+          }
+          if (videoFilename && (typeof videoFilename !== "string" || videoFilename.length > 200)) {
+            return Response.json({ error: "Nombre de video inválido" }, { status: 400 });
+          }
+          if (videoContentType && (typeof videoContentType !== "string" || !videoContentType.startsWith("video/"))) {
+            return Response.json({ error: "Tipo de video inválido" }, { status: 400 });
           }
           if (videoLink && (typeof videoLink !== "string" || !/^https?:\/\/.+/i.test(videoLink) || videoLink.length > 1000)) {
             return Response.json({ error: "Enlace de video inválido" }, { status: 400 });
@@ -48,7 +49,6 @@ export const Route = createFileRoute("/api/public/send-contact")({
 
           const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
           const RESEND_API_KEY = process.env.RESEND_API_KEY;
-          const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
           if (!LOVABLE_API_KEY || !RESEND_API_KEY) {
             return Response.json({ error: "Servicio de email no configurado" }, { status: 500 });
           }
@@ -66,34 +66,13 @@ export const Route = createFileRoute("/api/public/send-contact")({
           let videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> <span style="color:#888;">— no adjuntado —</span></p>`;
           const attachments: Array<{ filename: string; content: string }> = [];
 
-          if (videoPath && SUPABASE_SERVICE_ROLE_KEY) {
-            const encodedPath = videoPath.split("/").map(encodeURIComponent).join("/");
-            const storageHeaders = {
-              apikey: SUPABASE_SERVICE_ROLE_KEY,
-              Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-            };
-
-            try {
-              const dlRes = await fetch(
-                `${SUPABASE_STORAGE_URL}/storage/v1/object/videos/${encodedPath}`,
-                { headers: storageHeaders },
-              );
-              if (!dlRes.ok) {
-                console.error("storage download failed:", dlRes.status, await dlRes.text());
-                videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> se subió pero no se pudo adjuntar al correo. Ruta: <code>${videoPath}</code></p>`;
-              } else {
-                const buf = await dlRes.arrayBuffer();
-                const filename = videoPath.split("/").pop() || "video.mp4";
-                attachments.push({
-                  filename,
-                  content: arrayBufferToBase64(buf),
-                });
-                videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> adjunto al correo (<code>${filename}</code> · ${(buf.byteLength / (1024 * 1024)).toFixed(1)} MB)</p>`;
-              }
-            } catch (e) {
-              console.error("download exception:", e);
-              videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> se subió pero hubo un error al adjuntarlo. Ruta: <code>${videoPath}</code></p>`;
-            }
+          if (videoBase64) {
+            const filename = String(videoFilename || "video.mp4")
+              .replace(/[^a-zA-Z0-9._-]/g, "_")
+              .slice(0, 80);
+            attachments.push({ filename, content: videoBase64 });
+            const approxMB = ((videoBase64.length * 0.75) / (1024 * 1024)).toFixed(1);
+            videoBlock = `<p><strong style="color:#d4af37;">Video:</strong> adjunto al correo (<code>${filename}</code> · ~${approxMB} MB)</p>`;
           } else if (videoLink) {
             const safeLink = String(videoLink).replace(/[<>"]/g, "");
             videoBlock = `<p><strong style="color:#d4af37;">Video (enlace):</strong><br/><a href="${safeLink}" style="color:#d4af37;">${safeLink}</a></p>`;

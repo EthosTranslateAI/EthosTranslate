@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 const MAX_UPLOAD_BYTES = 200 * 1024 * 1024; // 200 MB hard cap
 const ALLOWED_MIME_PREFIX = "video/";
+const VIDEOS_BUCKET = "videos";
 
 export const Route = createFileRoute("/api/public/create-video-upload")({
   server: {
@@ -23,17 +24,42 @@ export const Route = createFileRoute("/api/public/create-video-upload")({
           const cleanName = filename.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80);
           const path = `contact/${crypto.randomUUID()}-${cleanName}`;
 
-          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          const { data, error } = await supabaseAdmin.storage
-            .from("videos")
-            .createSignedUploadUrl(path);
+          const supabaseUrl = process.env.SUPABASE_URL;
+          const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-          if (error || !data) {
-            console.error("createSignedUploadUrl error:", error);
+          if (!supabaseUrl || !serviceRoleKey) {
+            return Response.json({ error: "Storage no configurado" }, { status: 500 });
+          }
+
+          const encodedPath = path.split("/").map(encodeURIComponent).join("/");
+          const storageRes = await fetch(
+            `${supabaseUrl}/storage/v1/object/upload/sign/${VIDEOS_BUCKET}/${encodedPath}`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                apikey: serviceRoleKey,
+                Authorization: `Bearer ${serviceRoleKey}`,
+              },
+              body: "{}",
+            },
+          );
+
+          if (!storageRes.ok) {
+            console.error("createSignedUploadUrl storage error:", storageRes.status, await storageRes.text());
             return Response.json({ error: "No se pudo preparar la subida" }, { status: 502 });
           }
 
-          return Response.json({ path: data.path, token: data.token });
+          const data = await storageRes.json() as { url?: string; signedUrl?: string; path?: string };
+          const signedUrl = data.signedUrl ?? (data.url ? `${supabaseUrl}/storage/v1${data.url}` : undefined);
+          const token = signedUrl ? new URL(signedUrl).searchParams.get("token") : null;
+
+          if (!token) {
+            console.error("createSignedUploadUrl storage error: missing token");
+            return Response.json({ error: "No se pudo preparar la subida" }, { status: 502 });
+          }
+
+          return Response.json({ path, token });
         } catch (err) {
           console.error("create-video-upload error:", err);
           return Response.json({ error: "Error interno" }, { status: 500 });

@@ -74,19 +74,31 @@ function FormPage() {
       let videoLinkToSend: string | undefined;
 
       if (videoMode === "file" && videoFile) {
-        const cleanName = videoFile.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80);
-        const path = `contact/${crypto.randomUUID()}-${cleanName}`;
-        const { error: upErr } = await supabase.storage
-          .from("videos")
-          .upload(path, videoFile, {
-            contentType: videoFile.type || "video/mp4",
-            upsert: false,
-          });
-        if (upErr) throw new Error("No se pudo subir el video: " + upErr.message);
-        videoPath = path;
-      } else if (videoMode === "link" && videoLink.trim()) {
-        videoLinkToSend = videoLink.trim();
-      }
+  // 1. Pedir al servidor una URL firmada de subida
+  const prepRes = await fetch("/api/public/create-video-upload", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      filename: videoFile.name,
+      size: videoFile.size,
+      contentType: videoFile.type || "video/mp4",
+    }),
+  });
+  if (!prepRes.ok) {
+    const data = await prepRes.json().catch(() => ({}));
+    throw new Error(data.error || "No se pudo preparar la subida del video");
+  }
+  const { path, token } = await prepRes.json();
+
+  // 2. Subir el archivo usando esa URL firmada
+  const { error: upErr } = await supabase.storage
+    .from("videos")
+    .uploadToSignedUrl(path, token, videoFile, {
+      contentType: videoFile.type || "video/mp4",
+    });
+  if (upErr) throw new Error("No se pudo subir el video: " + upErr.message);
+  videoPath = path;
+}
 
       const idiomaLabel = IDIOMAS.find((i) => i.value === form.idioma)?.label ?? form.idioma;
 

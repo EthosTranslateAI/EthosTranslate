@@ -87,7 +87,7 @@ function Hero() {
           className="group inline-flex items-center gap-2 px-8 py-4 rounded-full bg-gold-gradient text-primary-foreground font-medium shadow-glow hover:scale-[1.03] transition">
             Solicitar DEMO <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
           </a>
-          <a href="#showcase" className="group inline-flex items-center gap-2 px-8 py-4 rounded-full border border-primary/40 text-foreground hover:bg-primary/10 transition">
+          <a href="#video-muestra" className="group inline-flex items-center gap-2 px-8 py-4 rounded-full border border-primary/40 text-foreground hover:bg-primary/10 transition">
             <Play className="w-4 h-4 text-primary" /> Ver muestra
           </a>
         </div>
@@ -540,21 +540,27 @@ function Pricing() {
     {
       p: "Essential",
       d: "Para cursos de hasta 5h",
-      f: ["Traducción a 1 idioma", "Subtitulado profesional", "1 revisión incluida", "Entrega en 21 días"],
+      price: "900€ - 2,400€",
+      priceNote: "según duración e idioma",
+      f: ["Traducción a 1 idioma", "Subtitulado profesional", "1 revisión incluida", "Entrega en 5-7 días hábiles", "Soporte incluido"],
       cta: "Empezar",
       highlight: false,
     },
     {
       p: "Premium",
       d: "Para cursos hasta 15h",
-      f: ["Traducción a 3 idiomas", "Subtitulado + doblaje IA", "Localización de materiales", "Project manager dedicado", "Revisiones ilimitadas", "Entrega en 14 días"],
+      price: "3,000€ - 6,000€",
+      priceNote: "según duración e idiomas",
+      f: ["Traducción a 3 idiomas", "Subtitulado + doblaje IA", "Project manager dedicado", "3 revisiones incluidas", "Entrega en 10 días hábiles"],
       cta: "Plan más elegido",
       highlight: true,
     },
     {
       p: "Custom",
       d: "Para imperios digitales",
-      f: ["10+ idiomas simultáneos", "Doblaje con clonación de voz", "Suite completa de marketing", "Equipo dedicado fulltime", "SLA priority", "Soporte 24/7"],
+      price: "Presupuesto a medida",
+      priceNote: null,
+      f: ["10+ idiomas simultáneos", "Doblaje con clonación de voz", "Adaptación de exámenes, quizzes...", "Equipo dedicado fulltime", "SLA priority", "Soporte 24/7"],
       cta: "Hablar con ventas",
       highlight: false,
     },
@@ -576,7 +582,15 @@ function Pricing() {
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gold-gradient text-primary-foreground text-xs uppercase tracking-widest">Más popular</div>
               )}
               <div className="text-5xl font-display text-gold-gradient mb-2">{plan.p}</div>
-              <div className="text-sm text-muted-foreground mb-8">{plan.d}</div>
+              <div className="text-sm text-muted-foreground mb-2">{plan.d}</div>
+
+              <div className="mb-5 pb-5 border-b border-border">
+                <div className="text-1xl lg:text-2xl font-display text-foreground">{plan.price}</div>
+                {plan.priceNote && (
+                  <div className="text-xs text-muted-foreground mt-1.5">{plan.priceNote}</div>
+                )}
+              </div>
+
               <ul className="space-y-3 mb-10">
                 {plan.f.map((it) => (
                   <li key={it} className="flex items-start gap-3 text-sm">

@@ -134,7 +134,7 @@ function FormPage() {
               Hablemos de tu <span className="italic text-gold-gradient">próximo lanzamiento</span>
             </h1>
             <p className="mt-6 text-muted-foreground text-lg">
-              Déjanos tus datos con tu video y te hacemos una demo personalizada para que veas como funciona lo antes posible.
+              Déjanos tus datos con tu video de máximo 2 minutos y te hacemos una demo personalizada para que veas como funciona lo antes posible.
             </p>
           </div>
 

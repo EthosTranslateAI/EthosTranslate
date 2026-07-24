@@ -14,6 +14,7 @@ import { Route as PrivacidadRouteImport } from './routes/privacidad'
 import { Route as PremiumRouteImport } from './routes/premium'
 import { Route as FormRouteImport } from './routes/form'
 import { Route as EssentialRouteImport } from './routes/essential'
+import { Route as CustomRouteImport } from './routes/custom'
 import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiPublicSendContactRouteImport } from './routes/api/public/send-contact'
@@ -44,6 +45,11 @@ const EssentialRoute = EssentialRouteImport.update({
   path: '/essential',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CustomRoute = CustomRouteImport.update({
+  id: '/custom',
+  path: '/custom',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CookiesRoute = CookiesRouteImport.update({
   id: '/cookies',
   path: '/cookies',
@@ -69,6 +75,7 @@ const ApiPublicCreateVideoUploadRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cookies': typeof CookiesRoute
+  '/custom': typeof CustomRoute
   '/essential': typeof EssentialRoute
   '/form': typeof FormRoute
   '/premium': typeof PremiumRoute
@@ -80,6 +87,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cookies': typeof CookiesRoute
+  '/custom': typeof CustomRoute
   '/essential': typeof EssentialRoute
   '/form': typeof FormRoute
   '/premium': typeof PremiumRoute
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/cookies': typeof CookiesRoute
+  '/custom': typeof CustomRoute
   '/essential': typeof EssentialRoute
   '/form': typeof FormRoute
   '/premium': typeof PremiumRoute
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/cookies'
+    | '/custom'
     | '/essential'
     | '/form'
     | '/premium'
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/cookies'
+    | '/custom'
     | '/essential'
     | '/form'
     | '/premium'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/cookies'
+    | '/custom'
     | '/essential'
     | '/form'
     | '/premium'
@@ -139,6 +151,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CookiesRoute: typeof CookiesRoute
+  CustomRoute: typeof CustomRoute
   EssentialRoute: typeof EssentialRoute
   FormRoute: typeof FormRoute
   PremiumRoute: typeof PremiumRoute
@@ -185,6 +198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EssentialRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/custom': {
+      id: '/custom'
+      path: '/custom'
+      fullPath: '/custom'
+      preLoaderRoute: typeof CustomRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cookies': {
       id: '/cookies'
       path: '/cookies'
@@ -219,6 +239,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CookiesRoute: CookiesRoute,
+  CustomRoute: CustomRoute,
   EssentialRoute: EssentialRoute,
   FormRoute: FormRoute,
   PremiumRoute: PremiumRoute,

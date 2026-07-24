@@ -48,6 +48,7 @@ function Nav() {
         </Link>
         <Link
           to="/"
+          hash="precios"
           className="group inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition" />
@@ -151,7 +152,7 @@ function Description() {
         </ul>
         <p className="mt-6 text-sm text-muted-foreground">
           ¿Necesitas doblaje, varios idiomas o adaptar materiales del curso? Echa un vistazo al{" "}
-          <Link to="/" className="text-primary hover:underline">
+          <Link to="/premium" className="text-primary hover:underline">
             plan Premium
           </Link>
           .
@@ -356,7 +357,7 @@ function PriceCalculator() {
         {activeLang.rate === 7 && (
           <p className="text-[11px] text-muted-foreground mt-2">
             ¿Necesitas más de un idioma como este?{" "}
-            <Link to="/" className="text-primary hover:underline">
+            <Link to="/premium" className="text-primary hover:underline">
               Premium incluye hasta 3
             </Link>
             .

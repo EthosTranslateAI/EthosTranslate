@@ -544,6 +544,7 @@ function Pricing() {
       priceNote: "según duración e idioma",
       f: ["Traducción a 1 idioma", "Subtitulado profesional", "1 revisión incluida", "Entrega en 5-7 días hábiles", "Soporte incluido"],
       cta: "Empezar",
+      to:"/essential",
       highlight: false,
     },
     {
@@ -553,6 +554,7 @@ function Pricing() {
       priceNote: "según duración e idiomas",
       f: ["Traducción a 3 idiomas", "Subtitulado + doblaje IA", "Project manager dedicado", "3 revisiones incluidas", "Entrega en 10 días hábiles"],
       cta: "Plan más elegido",
+      to:"/premium",
       highlight: true,
     },
     {
@@ -562,6 +564,7 @@ function Pricing() {
       priceNote: null,
       f: ["10+ idiomas simultáneos", "Doblaje con clonación de voz", "Adaptación de exámenes, quizzes...", "Equipo dedicado fulltime", "SLA priority", "Soporte 24/7"],
       cta: "Hablar con ventas",
+      to:"/custom",
       highlight: false,
     },
   ];
@@ -599,9 +602,9 @@ function Pricing() {
                   </li>
                 ))}
               </ul>
-              <a href="#contacto" className={`block text-center px-6 py-3 rounded-full font-medium transition ${plan.highlight ? "bg-gold-gradient text-primary-foreground hover:scale-[1.03]" : "border border-primary/40 text-foreground hover:bg-primary/10"}`}>
+              <Link to={plan.to} className={`block text-center px-6 py-3 rounded-full font-medium transition ${plan.highlight ? "bg-gold-gradient text-primary-foreground hover:scale-[1.03]" : "border border-primary/40 text-foreground hover:bg-primary/10"}`}>
                 {plan.cta}
-              </a>
+              </Link>
             </div>
           ))}
         </div>

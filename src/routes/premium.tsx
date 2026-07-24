@@ -48,6 +48,7 @@ function Nav() {
         </Link>
         <Link
           to="/"
+          hash="precios"
           className="group inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition" />
@@ -155,11 +156,11 @@ function Description() {
         </ul>
         <p className="mt-6 text-sm text-muted-foreground">
           ¿Solo necesitas probar un mercado con subtítulos? El{" "}
-          <Link to="/" className="text-primary hover:underline">
+          <Link to="/essential" className="text-primary hover:underline">
             plan Essential
           </Link>{" "}
           es más simple y directo. ¿Necesitas más de 3 idiomas, casting de voces o integración con tu LMS? Eso ya es terreno del{" "}
-          <Link to="/" className="text-primary hover:underline">
+          <Link to="/custom" className="text-primary hover:underline">
             plan Custom
           </Link>
           .
@@ -428,7 +429,7 @@ function PriceCalculator() {
         {atLimit ? (
           <p className="text-[11px] text-muted-foreground mt-2">
             Llegaste al máximo de este plan.{" "}
-            <Link to="/" className="text-primary hover:underline">
+            <Link to="/custom" className="text-primary hover:underline">
               Custom
             </Link>{" "}
             permite 10+ idiomas simultáneos.

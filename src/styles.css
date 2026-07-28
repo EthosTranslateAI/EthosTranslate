@@ -80,9 +80,20 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
+  /*
+    Cormorant Garamond (the display font) has unusually tall ascender/descender
+    metrics compared to Inter. Tailwind's default text-* utilities set a tight
+    line-height tuned for sans-serif fonts, which clips accents and descenders
+    (á, é, j, g, y, q...) on this typeface — especially inside overflow-hidden
+    sections. Baking a taller default line-height into every display heading
+    fixes this globally instead of needing leading-[...] + pb-* patches on
+    every single h1/h2/h3 instance.
+  */
   h1, h2, h3, h4 {
     font-family: var(--font-display);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    padding-bottom: 0.05em;
   }
 }
 
@@ -91,6 +102,15 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  /*
+    When this utility is combined with italic text, the slanted stroke of
+    the last letter can extend past the browser's computed text box. Since
+    the gradient is painted only inside that box (background-clip: text),
+    the overhanging ink has no gradient to clip to and renders as if cut
+    off — even though there's no real layout overflow. A little right
+    padding gives that overhang room to render correctly.
+  */
+  padding-right: 0.15em;
 }
 
 @utility bg-gold-gradient {

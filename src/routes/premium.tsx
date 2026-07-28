@@ -313,8 +313,8 @@ function PriceCalculator() {
     if (selectedLangs.length === 0) return { low: 0, high: 0 };
     const minutes = hours * 60;
     const bundle = BUNDLE_MULTIPLIER[selectedLangs.length] ?? 1;
-    const deliveryMultiplier = express ? 1.3 : 1;
-    const base = durationCost(minutes, hardestRate) * bundle * deliveryMultiplier;
+    const deliveryMultiplier = express ? 150 : 1;
+    const base = durationCost(minutes, hardestRate) * bundle + deliveryMultiplier;
     const rawLow = Math.round((base * 0.9) / 10) * 10;
     const rawHigh = Math.round((base * 1.1) / 10) * 10;
     // Se acota siempre al rango real del plan: nunca por debajo de 3.000
@@ -458,7 +458,7 @@ function PriceCalculator() {
               express ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground hover:border-primary/40"
             }`}
           >
-            Prioritaria
+            Express
             <div className="text-[10px] mt-0.5 opacity-70">8-12 días</div>
           </button>
         </div>

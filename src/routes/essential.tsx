@@ -265,8 +265,8 @@ function PriceCalculator() {
 
   const { low, high } = useMemo(() => {
     const minutes = hours * 60;
-    const multiplier = express ? 1.3 : 1;
-    const base = minutes * activeLang.rate * multiplier;
+    const multiplier = express ? 150 : 1;
+    const base = minutes * activeLang.rate + multiplier;
     const rawLow = Math.round((base * 0.9) / 10) * 10;
     const rawHigh = Math.round((base * 1.1) / 10) * 10;
     // Se acota siempre al rango real del plan: nunca por debajo de 900
@@ -376,7 +376,7 @@ function PriceCalculator() {
             }`}
           >
             Estándar
-            <div className="text-[10px] mt-0.5 opacity-70">5-7 días</div>
+            <div className="text-[10px] mt-0.5 opacity-70">8-12 días</div>
           </button>
           <button
             onClick={() => setExpress(true)}

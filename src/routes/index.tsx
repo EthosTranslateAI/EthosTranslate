@@ -42,7 +42,7 @@ function Nav() {
     <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-background/60 border-b border-border">
       <nav className="max-w-7xl mx-auto px-6 lg:px-10 h-20 flex items-center justify-between">
         <a href="#" className="flex items-center gap-2">
-          <span className="text-2xl font-display font-semibold tracking-wider text-gold-gradient">ETHOS</span>
+          <span className="text-2xl font-display font-semibold tracking-wider text-gold-gradient leading-normal pb-1">ETHOS</span>
           <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground hidden sm:block">Translate</span>
         </a>
         <ul className="hidden md:flex items-center gap-10 text-sm text-muted-foreground">
@@ -72,9 +72,9 @@ function Hero() {
           <Sparkles className="w-3.5 h-3.5" /> Agencia #1 en impulsar cursos a nivel internacional.
         </div>
 
-        <h1 className="text-5xl sm:text-7xl lg:text-8xl font-display font-medium leading-[0.95] tracking-tight animate-fade-up" style={{ animationDelay: "0.1s" }}>
+        <h1 className="text-5xl sm:text-7xl lg:text-8xl font-display font-medium leading-[1.1] tracking-tight pb-2 animate-fade-up" style={{ animationDelay: "0.1s" }}>
           Haz que tu contenido<br />
-          llegue <span className="italic text-gold-gradient animate-shimmer" style={{ backgroundImage: "linear-gradient(90deg, var(--gold-deep), var(--gold-bright), var(--gold-deep))", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}> mas lejos</span>
+          llegue <span className="italic text-gold-gradient animate-shimmer" style={{ backgroundImage: "linear-gradient(90deg, var(--gold-deep), var(--gold-bright), var(--gold-deep))", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent", paddingRight: "0.15em" }}> mas lejos</span>
         </h1>
 
         <p className="mt-8 max-w-2xl mx-auto text-lg lg:text-xl text-muted-foreground leading-relaxed animate-fade-up" style={{ animationDelay: "0.2s" }}>
@@ -99,7 +99,7 @@ function Hero() {
             { k: "98%", v: "Retención cliente" },
           ].map((s) => (
             <div key={s.v} className="text-center">
-              <div className="text-3xl lg:text-4xl font-display text-gold-gradient">{s.k}</div>
+              <div className="text-3xl lg:text-4xl font-display text-gold-gradient leading-normal pb-1">{s.k}</div>
               <div className="text-xs uppercase tracking-widest text-muted-foreground mt-2">{s.v}</div>
             </div>
           ))}
@@ -114,7 +114,7 @@ function Marquee() {
   return (
     <section className="border-y border-border bg-card/30 py-8 overflow-hidden">
       <div className="text-xs uppercase tracking-[0.3em] text-muted-foreground text-center mb-6">Idiomas más usados</div>
-      <div className="flex gap-16 justify-center whitespace-nowrap text-2xl lg:text-3xl font-display text-muted-foreground/60">
+      <div className="flex gap-16 justify-center whitespace-nowrap text-2xl lg:text-3xl font-display text-muted-foreground/60 leading-normal pb-1">
         {items.map((i, idx) => (
           <span key={idx} className="hover:text-primary transition">{i}</span>
         ))}
@@ -145,7 +145,7 @@ function Services() {
       <div className="max-w-7xl mx-auto">
         <div className="max-w-2xl mb-20">
           <div className="text-xs uppercase tracking-[0.3em] text-primary mb-4">— Nuestros servicios</div>
-          <h2 className="text-4xl lg:text-6xl font-display">Todo lo que tu curso necesita para <span className="text-gold-gradient italic">conquistar mercados</span></h2>
+          <h2 className="text-4xl lg:text-6xl font-display leading-[1.15] pb-1">Todo lo que tu curso necesita para <span className="text-gold-gradient italic">conquistar mercados</span></h2>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-border rounded-3xl overflow-hidden">
@@ -153,13 +153,13 @@ function Services() {
             <div key={s.title} className="group relative bg-card p-10 hover:bg-secondary transition duration-500">
               <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-0 group-hover:opacity-100 transition" />
               <s.icon className="w-10 h-10 text-primary mb-6 group-hover:scale-110 transition" strokeWidth={1.2} />
-              <h3 className="text-2xl font-display mb-3">{s.title}</h3>
+              <h3 className="text-2xl font-display mb-3 leading-snug pb-0.5">{s.title}</h3>
               <p className="text-muted-foreground leading-relaxed">{s.desc}</p>
             </div>
           ))}
         </div>
         <p
-          className="text-ml font-medium tracking-wide px-4 py-8 animate-shimmer" style={{
+          className="text-ml font-medium tracking-wide px-4 py-8 animate-shimmer leading-relaxed" style={{
             backgroundImage:
               "linear-gradient(90deg, #7a5c1e 0%, #d4af37 20%, #7a5c1e 40%, #6b6e72 60%, #7a5c1e 80%, #8a8d91 100%)",
             backgroundSize: "200% auto",
@@ -179,7 +179,7 @@ function Services() {
 function Process() {
   const steps = [
     { n: "01", t: "Análisis & estrategia", d: "Estudiamos tu curso, audiencia objetivo y mercados con mayor potencial de conversión." },
-    { n: "02", t: "Traducción experta", d: "Contamos con lingüistas nativos especializados en marketing digital." },
+    { n: "02", t: "Traducción experta", d: "Contamos con lingüistas nativos para revisar cualquier error." },
     { n: "03", t: "Producción audiovisual", d: "Doblaje, subtitulado y mezcla de audio en nuestro estudio con calidad broadcast." },
     { n: "04", t: "QA & entrega", d: "Triple revisión, sincronización perfecta y entrega lista para tu plataforma." },
   ];
@@ -189,14 +189,14 @@ function Process() {
       <div className="max-w-7xl mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-20">
           <div className="text-xs uppercase tracking-[0.3em] text-primary mb-4">— Cómo trabajamos —</div>
-          <h2 className="text-4xl lg:text-6xl font-display">Un proceso <span className="text-gold-gradient italic">impecable</span></h2>
+          <h2 className="text-4xl lg:text-6xl font-display leading-[1.15] pb-1">Un proceso <span className="text-gold-gradient italic">impecable</span></h2>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {steps.map((s, i) => (
             <div key={s.n} className="relative group">
-              <div className="text-7xl font-display text-gold-gradient opacity-90 mb-4">{s.n}</div>
-              <h3 className="text-xl font-display mb-3">{s.t}</h3>
+              <div className="text-7xl font-display text-gold-gradient opacity-90 mb-4 leading-normal pb-1">{s.n}</div>
+              <h3 className="text-xl font-display mb-3 leading-snug pb-0.5">{s.t}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">{s.d}</p>
               {i < steps.length - 1 && (
                 <div className="hidden lg:block absolute top-12 -right-4 w-8 h-px bg-gradient-to-r from-primary/60 to-transparent" />
@@ -222,7 +222,7 @@ function Showcase() {
                 <TrendingUp className="w-6 h-6 text-primary-foreground" />
               </div>
               <div>
-                <div className="text-2xl font-display text-gold-gradient">+340%</div>
+                <div className="text-2xl font-display text-gold-gradient leading-normal pb-1">+340%</div>
                 <div className="text-xs uppercase tracking-widest text-muted-foreground">ventas internacionales</div>
               </div>
             </div>
@@ -231,7 +231,7 @@ function Showcase() {
 
         <div>
           <div className="text-xs uppercase tracking-[0.3em] text-primary mb-4">— Más que traducir —</div>
-          <h2 className="text-4xl lg:text-5xl font-display mb-6">
+          <h2 className="text-4xl lg:text-5xl font-display mb-6 leading-[1.15] pb-1">
             El mundo está listo para <span className="text-gold-gradient italic">escucharte</span>
           </h2>
           <p className="text-lg text-muted-foreground leading-relaxed mb-8">
@@ -272,7 +272,7 @@ function Stats() {
             { k: "7d", v: "Tiempo promedio" },
           ].map((s) => (
             <div key={s.v}>
-              <div className="text-5xl lg:text-6xl font-display text-gold-gradient">{s.k}</div>
+              <div className="text-5xl lg:text-6xl font-display text-gold-gradient leading-normal pb-1">{s.k}</div>
               <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground mt-3">{s.v}</div>
             </div>
           ))}
@@ -375,7 +375,7 @@ function VideoShowcase() {
       <div className="max-w-6xl mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-16">
           <div className="text-xs uppercase tracking-[0.3em] text-primary mb-4">— Video de muestra —</div>
-          <h2 className="text-4xl lg:text-6xl font-display">
+          <h2 className="text-4xl lg:text-6xl font-display leading-[1.15] pb-1">
             Escúchalo <span className="text-gold-gradient italic">en cualquier idioma</span>
           </h2>
           <p className="mt-6 text-muted-foreground">
@@ -509,7 +509,7 @@ function Testimonials() {
       <div className="max-w-7xl mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-20">
           <div className="text-xs uppercase tracking-[0.3em] text-primary mb-4">— Voces de creadores —</div>
-          <h2 className="text-4xl lg:text-6xl font-display">Resultados que <span className="text-gold-gradient italic">hablan</span></h2>
+          <h2 className="text-4xl lg:text-6xl font-display leading-[1.15] pb-1">Resultados que <span className="text-gold-gradient italic">hablan</span></h2>
         </div>
         <div className="grid md:grid-cols-3 gap-6">
           {items.map((t) => (
@@ -550,7 +550,7 @@ function Pricing() {
     {
       p: "Premium",
       d: "Para cursos hasta 15h",
-      price: "3,000€ - 6,000€",
+      price: "3,000€ - 7,500€",
       priceNote: "según duración e idiomas",
       f: ["Traducción a 3 idiomas", "Subtitulado + doblaje IA", "Project manager dedicado", "3 revisiones incluidas", "Entrega en 10 días hábiles"],
       cta: "Plan más elegido",
@@ -574,7 +574,7 @@ function Pricing() {
       <div className="max-w-7xl mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-20">
           <div className="text-xs uppercase tracking-[0.3em] text-primary mb-4">— Inversión —</div>
-          <h2 className="text-4xl lg:text-6xl font-display">Planes <span className="text-gold-gradient italic">a tu medida</span></h2>
+          <h2 className="text-4xl lg:text-6xl font-display leading-[1.15] pb-1">Planes <span className="text-gold-gradient italic">a tu medida</span></h2>
           <p className="mt-6 text-muted-foreground">Cada curso es único. Estos son nuestros puntos de partida.</p>
         </div>
 
@@ -584,11 +584,11 @@ function Pricing() {
               {plan.highlight && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gold-gradient text-primary-foreground text-xs uppercase tracking-widest">Más popular</div>
               )}
-              <div className="text-5xl font-display text-gold-gradient mb-2">{plan.p}</div>
+              <div className="text-5xl font-display text-gold-gradient mb-2 leading-normal pb-1">{plan.p}</div>
               <div className="text-sm text-muted-foreground mb-2">{plan.d}</div>
 
               <div className="mb-5 pb-5 border-b border-border">
-                <div className="text-1xl lg:text-2xl font-display text-foreground">{plan.price}</div>
+                <div className="text-1xl lg:text-2xl font-display text-foreground leading-normal">{plan.price}</div>
                 {plan.priceNote && (
                   <div className="text-xs text-muted-foreground mt-1.5">{plan.priceNote}</div>
                 )}
@@ -623,13 +623,15 @@ function FAQ() {
     { q: "¿Puedo clonar mi voz de forma legal?", a: "Sí. Usamos tecnología con autorización contractual completa. Tú mantienes 100% el control de tu voz." },
     { q: "¿Trabajan con plataformas como Hotmart o Kajabi?", a: "Sí. Entregamos archivos en cualquier formato compatible con tu plataforma, listos para subir." },
     { q: "¿Qué pasa si no quedo satisfecho?", a: "Revisiones ilimitadas hasta tu aprobación. Si aún así no estás conforme, devolvemos el 100%." },
+    {q: "¿Quién tiene acceso a mi curso mientras lo traducís?", a: "Solo el equipo mínimo asignado a tu proyecto: traductor, revisor y tu project manager. Nadie más en el estudio ve ni descarga tu material."},
+    {q: "¿Puede filtrarse mi curso antes de su lanzamiento oficial?", a: "No. Todo el contenido se gestiona en entornos privados y cifrados, con enlaces caducados tras la entrega y sin almacenamiento en dispositivos personales del equipo."}
   ];
   return (
     <section id="faq" className="relative py-32 px-6 lg:px-10 bg-card/40">
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-16">
           <div className="text-xs uppercase tracking-[0.3em] text-primary mb-4">— FAQ —</div>
-          <h2 className="text-4xl lg:text-5xl font-display">Lo que más nos <span className="text-gold-gradient italic">preguntan</span></h2>
+          <h2 className="text-4xl lg:text-5xl font-display leading-[1.15] pb-1">Lo que más nos <span className="text-gold-gradient italic">preguntan</span></h2>
         </div>
         <div className="space-y-3">
           {faqs.map((f, i) => (
@@ -662,7 +664,7 @@ function CTA() {
     <section id="contacto" className="relative py-32 px-6 lg:px-10 overflow-hidden">
       <div className="absolute inset-0" style={{ background: "var(--gradient-radial-gold)" }} />
       <div className="relative max-w-4xl mx-auto text-center">
-        <h2 className="text-5xl lg:text-7xl font-display leading-[1.05]">
+        <h2 className="text-5xl lg:text-7xl font-display leading-[1.1] pb-2">
           Tu próximo lanzamiento <br />
           ya tiene <span className="text-gold-gradient italic">audiencia global</span>
         </h2>
@@ -694,7 +696,7 @@ function Footer() {
         <div className="flex flex-col md:flex-row gap-12 justify-between">
           {/* Marca */}
           <div className="max-w-xs">
-            <div className="text-3xl font-display text-gold-gradient">ETHOS</div>
+            <div className="text-3xl font-display text-gold-gradient leading-normal pb-1">ETHOS</div>
             <div className="text-xs uppercase tracking-[0.3em] text-muted-foreground mt-2">Translate</div>
           </div>
 

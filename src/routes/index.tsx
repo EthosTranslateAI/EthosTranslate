@@ -94,7 +94,7 @@ function Hero() {
 
         <div className="mt-20 grid grid-cols-3 gap-8 max-w-2xl mx-auto animate-fade-up" style={{ animationDelay: "0.4s" }}>
           {[
-            { k: "+180", v: "Cursos traducidos" },
+            { k: "+180", v: "Horas traducidas" },
             { k: "+50", v: "Idiomas y Dialectos" },
             { k: "98%", v: "Retención cliente" },
           ].map((s) => (
@@ -266,8 +266,8 @@ function Stats() {
         <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/40" />
         <div className="relative grid md:grid-cols-4 gap-12 p-16 lg:p-24">
           {[
-            { k: "+560k", v: "Generados para clientes" },
-            { k: "180+", v: "Cursos lanzados" },
+            { k: "+25%", v: "De audiencia estimada" },
+            { k: "+70", v: "Videos de experiencia" },
             { k: "+50", v: "Idiomas activos" },
             { k: "7d", v: "Tiempo promedio" },
           ].map((s) => (
@@ -500,9 +500,9 @@ function VideoShowcase() {
 
 function Testimonials() {
   const items = [
-    { q: "Triplicamos ventas en Francia en 60 días. Calidad de doblaje excelente —parece que yo mismo hablo francés.", a: "Eneko Ipinza", r: "Mentor de ventas" },
-    { q: "Llevaba años intentando entrar al mercado anglosajón. ETHOS lo logró en una semana de trabajo.", a: "Ugaitz Ugalde", r: "Creador de cursos de marca personal" },
-    { q: "El proceso es de boutique de lujo. Project manager dedicada, entregas siempre antes de tiempo.", a: "Darik Rodriguez", r: "Coach de productividad" },
+    { q: "Traduje mi curso de inglés a español y portugués con ellos. El proceso fue simple y el resultado sonaba natural. Recomendado.", a: "Laura Garcia", r: "Mentor de ventas", s: 5 },
+    { q: "Buena relación calidad-precio. Tardaron un poco más de lo esperado, pero la traducción de los subtítulos quedó muy cuidada. Volvería a trabajar con ellos", a: "Javier Ortiz", r: "Creador de cursos de marca personal", s: 4 },
+    { q: "Necesitaba adaptar mis vídeos a varios idiomas rápido y sin complicarme. Cumplieron los plazos y el soporte respondía rápido cuando tenía dudas.", a: "Diego Fernandez", r: "Coach de productividad", s: 5 },
   ];
   return (
     <section id="testimonios" className="relative py-32 px-6 lg:px-10 bg-card/40">
@@ -523,7 +523,12 @@ function Testimonials() {
                 </div>
                 <div className="flex gap-0.5">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className="w-3.5 h-3.5 fill-primary text-primary" />
+                    <Star
+                      key={i}
+                      className={`w-3.5 h-3.5 ${
+                        i < t.s ? "fill-primary text-primary" : "fill-none text-muted-foreground/30"
+                      }`}
+                    />
                   ))}
                 </div>
               </div>

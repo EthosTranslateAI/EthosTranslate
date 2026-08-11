@@ -292,11 +292,11 @@ function VideoShowcase() {
   const [hovering, setHovering] = useState(false);
   const [lang, setLang] = useState("es");
 
-  const languages = [
-    { code: "es", label: "Español", flagUrl: "https://flagcdn.com/es.svg", src: "/assets/video-es.mp4" },
-    { code: "en", label: "English", flagUrl: "https://flagcdn.com/gb.svg", src: "/assets/video-en.mp4" },
-    { code: "ch", label: "Chino", flagUrl: "https://flagcdn.com/cn.svg", src: "/assets/video-ch.mp4" },
-    { code: "de", label: "Deutsch", flagUrl: "https://flagcdn.com/de.svg", src: "/assets/video-de.mp4" },
+const languages = [
+    { code: "es", label: "Español", flagUrl: "https://flagcdn.com/es.svg", src: "https://www.youtube.com/embed/t058TYbEDLI" },
+    { code: "en", label: "English", flagUrl: "https://flagcdn.com/gb.svg", src: "https://www.youtube.com/embed/EN_VIDEO_ID" },
+    { code: "ch", label: "Chino", flagUrl: "https://flagcdn.com/cn.svg", src: "https://www.youtube.com/embed/CH_VIDEO_ID" },
+    { code: "de", label: "Deutsch", flagUrl: "https://flagcdn.com/de.svg", src: "https://www.youtube.com/embed/DE_VIDEO_ID" },
   ];
 
   const activeLang = languages.find((l) => l.code === lang)!;

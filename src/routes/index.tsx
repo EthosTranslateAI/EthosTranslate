@@ -87,7 +87,7 @@ function Hero() {
         </p>
 
         <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-up" style={{ animationDelay: "0.3s" }}>
-          <a href="https://ethostranslate.lovable.app/form" 
+          <a href="https://ethostranslate.lovable.app/form"
           className="group inline-flex items-center gap-2 px-8 py-4 rounded-full bg-gold-gradient text-primary-foreground font-medium shadow-glow hover:scale-[1.03] transition">
             Solicitar DEMO <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
           </a>
@@ -124,7 +124,7 @@ function Marquee() {
         ))}
       </div>
       <div className="mt-8 text-center">
-        <a href="https://ethostranslate.lovable.app/form" 
+        <a href="https://ethostranslate.lovable.app/form"
         className="text-sm text-primary font-medium border border-primary/40 rounded-full px-4 py-1.5">
           ¿No está tu idioma? Solicítalo →
         </a>
@@ -141,7 +141,7 @@ function Services() {
     { icon: ThumbsUp, title: "Facil de implementar", desc: "En cuenstión de minutos podrás integrar el contenido adaptado en tu curso y empezar a venderlo internacionalmente." },
     { icon: Clock, title: "Entrega express", desc: "Cursos completos en 14 días. Modelo dedicado para cursos de alto volumen." },
     { icon: ShieldCheck, title: "NDA & confidencialidad", desc: "Tu contenido nunca sale de nuestro estudio. Acuerdos blindados desde el día uno." },
-    
+
   ];
 
   return (
@@ -175,10 +175,10 @@ function Services() {
         >
           Gracias a estos servicios, consigue más idiomas, más mercados, más ventas..
         </p>
-              </div>
-            </section>
-          );
-        }
+      </div>
+    </section>
+  );
+}
 
 function Process() {
   const steps = [
@@ -290,6 +290,8 @@ function VideoShowcase() {
   const playerRef = useRef(null);
   const containerIdRef = useRef(`yt-player-${Math.random().toString(36).slice(2)}`);
   const progressIntervalRef = useRef<any>(null);
+  const apiTimeoutRef = useRef<any>(null);
+  const readyTimeoutRef = useRef<any>(null);
 
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -318,10 +320,7 @@ function VideoShowcase() {
     return `${m}:${s}`;
   };
 
-  // Carga el script de la YouTube IFrame API una sola vez.
-  // Incluye un polling de seguridad por si el callback global
-  // onYouTubeIframeAPIReady no llega a dispararse (por ejemplo si el
-  // script ya estaba a medio cargar cuando se montó el componente).
+  // Carga el script de la YouTube IFrame API una sola vez, con timeout de seguridad.
   useEffect(() => {
     // @ts-ignore
     if (window.YT && window.YT.Player) {
@@ -333,6 +332,11 @@ function VideoShowcase() {
       const tag = document.createElement("script");
       tag.id = "youtube-iframe-api";
       tag.src = "https://www.youtube.com/iframe_api";
+      tag.onerror = () => {
+        setVideoError(
+          "No se pudo cargar el reproductor de YouTube (puede estar bloqueado por un adblocker o firewall)."
+        );
+      };
       document.body.appendChild(tag);
     }
     // @ts-ignore
@@ -343,8 +347,6 @@ function VideoShowcase() {
       setApiReady(true);
     };
 
-    // Red de seguridad: comprobamos periódicamente si la API ya está
-    // disponible, por si el callback global no llega a ejecutarse.
     const poll = window.setInterval(() => {
       // @ts-ignore
       if (window.YT && window.YT.Player) {
@@ -353,12 +355,26 @@ function VideoShowcase() {
       }
     }, 200);
 
-    return () => window.clearInterval(poll);
+    // Timeout de seguridad: si a los 6s la API no cargó, mostramos error en vez
+    // de dejar la caja negra vacía para siempre.
+    apiTimeoutRef.current = window.setTimeout(() => {
+      // @ts-ignore
+      if (!(window.YT && window.YT.Player)) {
+        setVideoError(
+          "No se pudo cargar el reproductor de YouTube. Comprueba tu conexión o si un bloqueador de anuncios está bloqueando youtube.com."
+        );
+      }
+    }, 6000);
+
+    return () => {
+      window.clearInterval(poll);
+      window.clearTimeout(apiTimeoutRef.current);
+    };
   }, []);
 
   // Crea/recrea el player cuando la API está lista o cambia el idioma
   useEffect(() => {
-    if (!apiReady || !activeLang) return;
+    if (!apiReady || !activeLang || videoError) return;
 
     if (playerRef.current) {
       // @ts-ignore
@@ -371,7 +387,6 @@ function VideoShowcase() {
     setCurrent(0);
     setDuration(0);
     setPlayerReady(false);
-    setVideoError(null);
 
     // @ts-ignore
     playerRef.current = new window.YT.Player(containerIdRef.current, {
@@ -385,12 +400,11 @@ function VideoShowcase() {
         fs: 0,
         playsinline: 1,
         enablejsapi: 1,
-        // 👇 Fix Error 153: le indica a YouTube el origen exacto que
-        // está incrustando el player, requerido para validar el embed.
         origin: window.location.origin,
       },
       events: {
         onReady: (e: any) => {
+          window.clearTimeout(readyTimeoutRef.current);
           setDuration(e.target.getDuration());
           setMuted(e.target.isMuted());
           setPlayerReady(true);
@@ -406,8 +420,6 @@ function VideoShowcase() {
           }
         },
         onError: (e: any) => {
-          // Códigos: 2=parámetro inválido, 5=error HTML5,
-          // 100=vídeo no encontrado, 101/150=embed no permitido por el dueño.
           console.error("YouTube player error:", e.data);
           setVideoError(
             e.data === 101 || e.data === 150
@@ -420,7 +432,19 @@ function VideoShowcase() {
       },
     });
 
+    // Timeout de seguridad: si onReady no llega en 10s, avisamos en vez de
+    // dejar el player colgado sin feedback.
+    readyTimeoutRef.current = window.setTimeout(() => {
+      setPlayerReady((ready) => {
+        if (!ready) {
+          setVideoError("El vídeo está tardando demasiado en cargar. Pruébalo directamente en YouTube.");
+        }
+        return ready;
+      });
+    }, 10000);
+
     return () => {
+      window.clearTimeout(readyTimeoutRef.current);
       if (playerRef.current) {
         // @ts-ignore
         playerRef.current.destroy();
@@ -430,8 +454,7 @@ function VideoShowcase() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiReady, lang]);
 
-  // Sondea el progreso mientras reproduce
-useEffect(() => {
+  useEffect(() => {
     if (playing) {
       progressIntervalRef.current = window.setInterval(() => {
         const p: any = playerRef.current;
@@ -451,7 +474,7 @@ useEffect(() => {
     };
   }, [playing]);
 
-const togglePlay = () => {
+  const togglePlay = () => {
     const p: any = playerRef.current;
     if (!p || !playerReady || typeof p.playVideo !== "function") return;
     if (playing) {
@@ -473,7 +496,7 @@ const togglePlay = () => {
     }
   };
 
-const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
     const p: any = playerRef.current;
     if (!p || !playerReady || !duration) return;
     const rect = e.currentTarget.getBoundingClientRect();
@@ -483,6 +506,7 @@ const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
 
   const selectLang = (code: string) => {
     if (code === lang) return;
+    setVideoError(null);
     setLang(code);
   };
 
@@ -500,7 +524,6 @@ const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
         </div>
 
         <div className="grid md:grid-cols-[280px_1fr] gap-8 items-center max-w-4xl mx-auto">
-          {/* --- Selector de idiomas --- */}
           <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-visible">
             {languages.map((l) => (
               <button
@@ -528,7 +551,6 @@ const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
             ))}
           </div>
 
-          {/* --- Video con controles custom sobre YouTube IFrame API --- */}
           <div className="w-full mx-auto md:mx-0">
             <div
               className="relative group rounded-3xl overflow-hidden border border-primary/20 shadow-elegant bg-black"
@@ -537,37 +559,52 @@ const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
             >
               <div className="absolute -inset-6 bg-gold-gradient opacity-10 blur-3xl rounded-full pointer-events-none" />
 
-              {/* El div que la API de YouTube reemplaza por su iframe interno */}
               <div className="relative aspect-video">
-                <div id={containerIdRef.current} className="w-full h-full" />
+                {/* Miniatura de fondo SIEMPRE visible mientras el player carga o si falla */}
+                {activeLang && (
+                  <img
+                    src={`https://img.youtube.com/vi/${activeLang.videoId}/hqdefault.jpg`}
+                    alt=""
+                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
+                      playerReady && !videoError ? "opacity-0" : "opacity-100"
+                    }`}
+                  />
+                )}
 
-                {/* Mensaje de error visible si el vídeo no carga */}
+                <div id={containerIdRef.current} className="w-full h-full relative z-[1]" />
+
                 {videoError && (
-                  <div className="absolute inset-0 flex items-center justify-center text-center px-6 text-sm text-muted-foreground bg-black/80">
-                    {videoError}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-center px-6 text-sm text-muted-foreground bg-black/80 z-10">
+                    <p>{videoError}</p>
+                    {activeLang && (
+                      <a
+                        href={`https://www.youtube.com/watch?v=${activeLang.videoId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-primary underline"
+                      >
+                        Ver en YouTube ↗
+                      </a>
+                    )}
                   </div>
                 )}
 
-                {/* Capa transparente para capturar el click y togglear play/pause,
-                    ya que con controls=0 el iframe no tiene sus propios botones */}
                 {!videoError && (
                   <button
                     onClick={togglePlay}
-                    className="absolute inset-0 w-full h-full cursor-pointer"
+                    className="absolute inset-0 w-full h-full cursor-pointer z-[2]"
                     aria-label={playing ? "Pausar video" : "Reproducir video"}
                   />
                 )}
               </div>
 
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30 pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30 pointer-events-none z-[1]" />
 
-              {/* esquinas HUD */}
               {["top-3 left-3 border-t border-l", "top-3 right-3 border-t border-r", "bottom-3 left-3 border-b border-l", "bottom-3 right-3 border-b border-r"].map((pos, i) => (
-                <div key={i} className={`absolute ${pos} w-6 h-6 border-primary/60 pointer-events-none transition-opacity duration-500 ${hovering || !playing ? "opacity-100" : "opacity-0"}`} />
+                <div key={i} className={`absolute ${pos} w-6 h-6 border-primary/60 pointer-events-none transition-opacity duration-500 z-[2] ${hovering || !playing ? "opacity-100" : "opacity-0"}`} />
               ))}
 
-              {/* badge idioma activo */}
-              <div className={`absolute top-4 left-6 flex items-center gap-2 pointer-events-none transition-opacity duration-500 ${hovering || !playing ? "opacity-100" : "opacity-0"}`}>
+              <div className={`absolute top-4 left-6 flex items-center gap-2 pointer-events-none transition-opacity duration-500 z-[2] ${hovering || !playing ? "opacity-100" : "opacity-0"}`}>
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
                   <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
@@ -575,11 +612,10 @@ const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
                 <img src={activeLang?.flagUrl} alt={activeLang?.label} className="w-4 h-3 object-cover rounded-sm" />
               </div>
 
-              {/* botón play central */}
               {!playing && !videoError && (
                 <button
                   onClick={togglePlay}
-                  className="absolute inset-0 m-auto w-16 h-16 rounded-full bg-gold-gradient flex items-center justify-center shadow-glow hover:scale-110 transition pointer-events-none"
+                  className="absolute inset-0 m-auto w-16 h-16 rounded-full bg-gold-gradient flex items-center justify-center shadow-glow hover:scale-110 transition pointer-events-none z-[2]"
                   aria-label="Reproducir video"
                 >
                   <span className="absolute inset-0 rounded-full bg-primary/40 animate-ping" />
@@ -587,35 +623,32 @@ const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
                 </button>
               )}
 
-              {/* controles inferiores */}
-              <div className={`absolute bottom-0 inset-x-0 px-4 pb-4 pt-8 bg-gradient-to-t from-black/80 to-transparent transition-opacity duration-500 ${hovering || !playing ? "opacity-100" : "opacity-0"}`}>
-                <div
-                  className="relative h-1 rounded-full bg-white/20 cursor-pointer mb-3 overflow-hidden"
-                  onClick={handleSeek}
-                >
+              {!videoError && (
+                <div className={`absolute bottom-0 inset-x-0 px-4 pb-4 pt-8 bg-gradient-to-t from-black/80 to-transparent transition-opacity duration-500 z-[2] ${hovering || !playing ? "opacity-100" : "opacity-0"}`}>
                   <div
-                    className="absolute inset-y-0 left-0 bg-gold-gradient rounded-full transition-[width] duration-150"
-                    style={{ width: `${progress}%` }}
-                  />
-                  <div
-                    className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-primary shadow-glow transition-[left] duration-150"
-                    style={{ left: `calc(${progress}% - 5px)` }}
-                  />
-                </div>
+                    className="relative h-1 rounded-full bg-white/20 cursor-pointer mb-3 overflow-hidden"
+                    onClick={handleSeek}
+                  >
+                    <div
+                      className="absolute inset-y-0 left-0 bg-gold-gradient rounded-full transition-[width] duration-150"
+                      style={{ width: `${progress}%` }}
+                    />
+                    <div
+                      className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-primary shadow-glow transition-[left] duration-150"
+                      style={{ left: `calc(${progress}% - 5px)` }}
+                    />
+                  </div>
 
-                <div className="flex items-center justify-between">
-                  <button onClick={toggleMute} className="text-foreground hover:text-primary transition">
-                    {muted ? (
-                      <VolumeX className="w-4 h-4" />
-                    ) : (
-                      <Volume2 className="w-4 h-4" />
-                    )}
-                  </button>
-                  <span className="text-[9px] font-mono tracking-widest text-muted-foreground">
-                    {formatTime(current)} / {formatTime(duration)}
-                  </span>
+                  <div className="flex items-center justify-between">
+                    <button onClick={toggleMute} className="text-foreground hover:text-primary transition">
+                      {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                    </button>
+                    <span className="text-[9px] font-mono tracking-widest text-muted-foreground">
+                      {formatTime(current)} / {formatTime(duration)}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
@@ -675,7 +708,7 @@ function Pricing() {
       priceNote: "según duración e idioma",
       f: ["Traducción a 1 idioma", "Subtitulado profesional", "1 revisión incluida", "Entrega en 5-7 días hábiles", "Soporte incluido"],
       cta: "Empezar",
-      to:"/essential",
+      to: "/essential",
       highlight: false,
     },
     {
@@ -685,7 +718,7 @@ function Pricing() {
       priceNote: "según duración e idiomas",
       f: ["Traducción a 3 idiomas", "Subtitulado + doblaje IA", "Project manager dedicado", "3 revisiones incluidas", "Entrega en 10 días hábiles"],
       cta: "Plan más elegido",
-      to:"/premium",
+      to: "/premium",
       highlight: true,
     },
     {
@@ -695,7 +728,7 @@ function Pricing() {
       priceNote: null,
       f: ["10+ idiomas simultáneos", "Doblaje con clonación de voz", "Adaptación de exámenes, quizzes...", "Equipo dedicado fulltime", "SLA priority", "Soporte 24/7"],
       cta: "Hablar con ventas",
-      to:"/custom",
+      to: "/custom",
       highlight: false,
     },
   ];
@@ -754,8 +787,8 @@ function FAQ() {
     { q: "¿Puedo clonar mi voz de forma legal?", a: "Sí. Usamos tecnología con autorización contractual completa. Tú mantienes 100% el control de tu voz." },
     { q: "¿Trabajan con plataformas como Hotmart o Kajabi?", a: "Sí. Entregamos archivos en cualquier formato compatible con tu plataforma, listos para subir." },
     { q: "¿Qué pasa si no quedo satisfecho?", a: "Revisiones ilimitadas hasta tu aprobación. Si aún así no estás conforme, devolvemos el 100%." },
-    {q: "¿Quién tiene acceso a mi curso mientras lo traducís?", a: "Solo el equipo mínimo asignado a tu proyecto: traductor, revisor y tu project manager. Nadie más en el estudio ve ni descarga tu material."},
-    {q: "¿Puede filtrarse mi curso antes de su lanzamiento oficial?", a: "No. Todo el contenido se gestiona en entornos privados y cifrados, con enlaces caducados tras la entrega y sin almacenamiento en dispositivos personales del equipo."}
+    { q: "¿Quién tiene acceso a mi curso mientras lo traducís?", a: "Solo el equipo mínimo asignado a tu proyecto: traductor, revisor y tu project manager. Nadie más en el estudio ve ni descarga tu material." },
+    { q: "¿Puede filtrarse mi curso antes de su lanzamiento oficial?", a: "No. Todo el contenido se gestiona en entornos privados y cifrados, con enlaces caducados tras la entrega y sin almacenamiento en dispositivos personales del equipo." }
   ];
   return (
     <section id="faq" className="relative py-32 px-6 lg:px-10 bg-card/40">
@@ -806,10 +839,10 @@ function CTA() {
           <a href="https://calendly.com/ethostranslate/llamada-informativa" className="inline-flex items-center gap-2 px-10 py-5 rounded-full bg-gold-gradient text-primary-foreground font-medium text-lg shadow-glow hover:scale-[1.03] transition">
             Agendar llamada <ArrowRight className="w-5 h-5" />
           </a>
-          <a 
+          <a
             href="https://wa.me/+34688603317"
             target="_blank"
-            rel="noopener noreferrer" 
+            rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-10 py-5 rounded-full border border-primary/40 text-foreground hover:bg-primary/10 transition">
             WhatsApp directo
           </a>
@@ -836,14 +869,14 @@ function Footer() {
             <div>
               <div className="text-xs uppercase tracking-[0.25em] text-primary mb-4">Soporte</div>
               <ul className="space-y-3 text-sm text-muted-foreground">
-                <li><a 
+                <li><a
                   href="https://wa.me/34688603317"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-primary transition">Contacto</a></li>
                 <li><a
-                href="https://mail.google.com/mail/?view=cm&fs=1&to=ethostranslate@gmail.com" 
-                  target="_blank" 
+                href="https://mail.google.com/mail/?view=cm&fs=1&to=ethostranslate@gmail.com"
+                  target="_blank"
                   rel="noopener noreferrer"
                  className="hover:text-primary transition"
                 >

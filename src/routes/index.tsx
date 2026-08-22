@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
-import { Languages, Sparkles, Clock, ShieldCheck, TrendingUp, Check, ArrowRight, Play, Star, Quote, UserCheck, ThumbsUp, Volume2, VolumeX } from "lucide-react";
+import { Languages, Sparkles, Clock, ShieldCheck, TrendingUp, Check, ArrowRight, Play, Star, Quote, UserCheck, ThumbsUp, Volume2, VolumeX, Captions } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import influencerImg from "@/assets/influencer.jpg";
 import globeImg from "@/assets/globe.jpg";
@@ -292,6 +292,7 @@ function VideoShowcase() {
   const progressIntervalRef = useRef<any>(null);
   const apiTimeoutRef = useRef<any>(null);
   const readyTimeoutRef = useRef<any>(null);
+  const langRef = useRef("es"); // siempre apunta al idioma "actual" para los closures del player
 
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -303,6 +304,7 @@ function VideoShowcase() {
   const [apiReady, setApiReady] = useState(false);
   const [playerReady, setPlayerReady] = useState(false);
   const [videoError, setVideoError] = useState<string | null>(null);
+  const [showCaptions, setShowCaptions] = useState(false);
 
   const languages = [
     { code: "es", label: "Español", flagUrl: "https://flagcdn.com/es.svg", videoId: "t058TYbEDLI" },
@@ -312,6 +314,14 @@ function VideoShowcase() {
   ];
 
   const activeLang = languages.find((l) => l.code === lang);
+
+  // Códigos de idioma que YouTube usa para las pistas de subtítulos.
+  // "ch" en nuestra lista de idiomas es chino, YouTube lo espera como zh-Hans.
+  const CAPTION_LANG: Record<string, string> = { es: "es", en: "en", de: "de", ch: "zh-Hans" };
+
+  useEffect(() => {
+    langRef.current = lang;
+  }, [lang]);
 
   const formatTime = (t: number) => {
     if (!isFinite(t)) return "00:00";
@@ -372,25 +382,18 @@ function VideoShowcase() {
     };
   }, []);
 
-  // Crea/recrea el player cuando la API está lista o cambia el idioma
+  // Crea el player UNA SOLA VEZ, cuando la API está lista.
+  // Ya no se destruye/recrea al cambiar de idioma: eso es lo que causaba
+  // que la segunda reproducción se quedara colgada (onReady no siempre
+  // llega cuando se destruye y crea un iframe nuevo en el mismo contenedor).
   useEffect(() => {
-    if (!apiReady || !activeLang || videoError) return;
+    if (!apiReady || playerRef.current) return;
 
-    if (playerRef.current) {
-      // @ts-ignore
-      playerRef.current.destroy();
-      playerRef.current = null;
-    }
-
-    setPlaying(false);
-    setProgress(0);
-    setCurrent(0);
-    setDuration(0);
-    setPlayerReady(false);
+    const initialLang = languages.find((l) => l.code === langRef.current) || languages[0];
 
     // @ts-ignore
     playerRef.current = new window.YT.Player(containerIdRef.current, {
-      videoId: activeLang.videoId,
+      videoId: initialLang.videoId,
       playerVars: {
         controls: 0,
         modestbranding: 1,
@@ -400,6 +403,7 @@ function VideoShowcase() {
         fs: 0,
         playsinline: 1,
         enablejsapi: 1,
+        cc_load_policy: 0,
         origin: window.location.origin,
       },
       events: {
@@ -411,12 +415,15 @@ function VideoShowcase() {
         },
         onStateChange: (e: any) => {
           // @ts-ignore
-          if (e.data === window.YT.PlayerState.PLAYING) {
+          const YTState = window.YT.PlayerState;
+          if (e.data === YTState.PLAYING) {
             setPlaying(true);
             setDuration(e.target.getDuration());
-            // @ts-ignore
-          } else if (e.data === window.YT.PlayerState.PAUSED || e.data === window.YT.PlayerState.ENDED) {
+          } else if (e.data === YTState.PAUSED || e.data === YTState.ENDED) {
             setPlaying(false);
+          } else if (e.data === YTState.CUED) {
+            // Se dispara tras cueVideoById() al cambiar de idioma
+            setDuration(e.target.getDuration());
           }
         },
         onError: (e: any) => {
@@ -432,8 +439,8 @@ function VideoShowcase() {
       },
     });
 
-    // Timeout de seguridad: si onReady no llega en 10s, avisamos en vez de
-    // dejar el player colgado sin feedback.
+    // Timeout de seguridad: si onReady no llega en 10s (solo en la carga
+    // inicial del iframe), avisamos en vez de dejar el player colgado.
     readyTimeoutRef.current = window.setTimeout(() => {
       setPlayerReady((ready) => {
         if (!ready) {
@@ -452,7 +459,38 @@ function VideoShowcase() {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiReady, lang]);
+  }, [apiReady]);
+
+  // Cuando cambia el idioma DESPUÉS de que el player ya existe,
+  // solo cambiamos el vídeo cargado (cueVideoById), sin destruir el iframe.
+  useEffect(() => {
+    const p: any = playerRef.current;
+    if (!p || !playerReady || !activeLang || typeof p.cueVideoById !== "function") return;
+
+    setVideoError(null);
+    setPlaying(false);
+    setProgress(0);
+    setCurrent(0);
+    p.cueVideoById(activeLang.videoId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang]);
+
+  // Sincroniza el toggle de subtítulos con el reproductor. Se reaplica también
+  // al cambiar de idioma o de vídeo, porque YouTube resetea la pista de
+  // subtítulos cada vez que se carga un vídeo nuevo con cueVideoById.
+  useEffect(() => {
+    const p: any = playerRef.current;
+    if (!p || !playerReady || typeof p.setOption !== "function") return;
+
+    if (showCaptions && activeLang) {
+      p.setOption("captions", "track", {
+        languageCode: CAPTION_LANG[activeLang.code] || activeLang.code,
+      });
+    } else {
+      p.setOption("captions", "track", {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showCaptions, lang, playerReady]);
 
   useEffect(() => {
     if (playing) {
@@ -496,6 +534,10 @@ function VideoShowcase() {
     }
   };
 
+  const toggleCaptions = () => {
+    setShowCaptions((v) => !v);
+  };
+
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
     const p: any = playerRef.current;
     if (!p || !playerReady || !duration) return;
@@ -506,7 +548,6 @@ function VideoShowcase() {
 
   const selectLang = (code: string) => {
     if (code === lang) return;
-    setVideoError(null);
     setLang(code);
   };
 
@@ -640,9 +681,19 @@ function VideoShowcase() {
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <button onClick={toggleMute} className="text-foreground hover:text-primary transition">
-                      {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                    </button>
+                    <div className="flex items-center gap-4">
+                      <button onClick={toggleMute} className="text-foreground hover:text-primary transition">
+                        {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                      </button>
+                      <button
+                        onClick={toggleCaptions}
+                        className={`transition ${showCaptions ? "text-primary" : "text-foreground hover:text-primary"}`}
+                        aria-label={showCaptions ? "Desactivar subtítulos" : "Activar subtítulos"}
+                        aria-pressed={showCaptions}
+                      >
+                        <Captions className="w-4 h-4" />
+                      </button>
+                    </div>
                     <span className="text-[9px] font-mono tracking-widest text-muted-foreground">
                       {formatTime(current)} / {formatTime(duration)}
                     </span>

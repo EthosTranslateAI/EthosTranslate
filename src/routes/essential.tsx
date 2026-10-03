@@ -77,7 +77,7 @@ function Hero() {
           Traducimos tu curso a un idioma con subtitulado profesional. La forma más simple y directa de probar un nuevo mercado, sin complicaciones ni grandes inversiones.
         </p>
         <div className="mt-10 flex items-center justify-center gap-3 text-sm text-muted-foreground">
-          <span className="text-3xl lg:text-4xl font-display text-gold-gradient">Desde $900</span>
+          <span className="text-3xl lg:text-4xl font-display text-gold-gradient">Desde $300</span>
           <span className="text-xs">según duración e idioma</span>
         </div>
       </div>
@@ -241,8 +241,19 @@ const LANGUAGES: { value: string; label: string; rate: number }[] = [
 ].sort((a, b) => a.label.localeCompare(b.label, "es"));
 
 // El plan Essential cuesta siempre entre estos dos valores, sin excepción.
-const MIN_PRICE = 900;
-const MAX_PRICE = 2400;
+const MIN_PRICE = 300;
+const MAX_PRICE = 500;
+
+// Reparto del margen (MAX_PRICE - MIN_PRICE = 200): 120 + 50 + 30.
+// Con todo al mínimo da 300 y con todo al máximo da 500.
+const HOURS_WEIGHT = 120;
+const LANG_WEIGHT = 50;
+const EXPRESS_WEIGHT = 30;
+
+const MIN_HOURS = 2;
+const MAX_HOURS = 5;
+const MIN_RATE = Math.min(...LANGUAGES.map((l) => l.rate));
+const MAX_RATE = Math.max(...LANGUAGES.map((l) => l.rate));
 
 function PriceCalculator() {
   const [hours, setHours] = useState(2);
@@ -264,16 +275,20 @@ function PriceCalculator() {
   }, []);
 
   const { low, high } = useMemo(() => {
-    const minutes = hours * 60;
-    const multiplier = express ? 150 : 1;
-    const base = minutes * activeLang.rate + multiplier;
-    const rawLow = Math.round((base * 0.9) / 10) * 10;
-    const rawHigh = Math.round((base * 1.1) / 10) * 10;
-    // Se acota siempre al rango real del plan: nunca por debajo de 900
-    // ni por encima de 2400, pase lo que pase con horas/idioma/entrega.
+    const hoursFactor = (hours - MIN_HOURS) / (MAX_HOURS - MIN_HOURS); // 0..1
+    const langFactor = (activeLang.rate - MIN_RATE) / (MAX_RATE - MIN_RATE); // 0..1
+    const base =
+      MIN_PRICE +
+      hoursFactor * HOURS_WEIGHT +
+      langFactor * LANG_WEIGHT +
+      (express ? EXPRESS_WEIGHT : 0); // siempre entre 300 y 500
+
+    const clamp = (n: number) => Math.min(Math.max(n, MIN_PRICE), MAX_PRICE);
+    const round10 = (n: number) => Math.round(n / 10) * 10;
+
     return {
-      low: Math.min(Math.max(rawLow, MIN_PRICE), MAX_PRICE),
-      high: Math.min(Math.max(rawHigh, MIN_PRICE), MAX_PRICE),
+      low: clamp(round10(base * 0.95)),
+      high: clamp(round10(base * 1.05)),
     };
   }, [hours, activeLang, express]);
 
@@ -291,8 +306,8 @@ function PriceCalculator() {
         </div>
         <input
           type="range"
-          min={2}
-          max={5}
+          min={MIN_HOURS}
+          max={MAX_HOURS}
           step={0.5}
           value={hours}
           onChange={(e) => setHours(parseFloat(e.target.value))}

@@ -77,7 +77,7 @@ function Hero() {
           Doblaje profesional y un project manager dedicado a tu proyecto. Pensado para creadores que quieren escalar en serio, sin dejar de sonar como ellos mismos.
         </p>
         <div className="mt-10 flex items-center justify-center gap-3 text-sm text-muted-foreground">
-          <span className="text-3xl lg:text-4xl font-display text-gold-gradient">Desde €3.000</span>
+          <span className="text-3xl lg:text-4xl font-display text-gold-gradient">Desde €700</span>
           <span className="text-xs">según duración e idiomas</span>
         </div>
       </div>
@@ -108,6 +108,8 @@ function Description() {
     { t: "Project manager dedicado", d: "Una persona de contacto directo durante todo el proyecto, coordinando revisiones y resolviendo dudas sin que tengas que perseguir a nadie." },
     { t: "3 rondas de revisión", d: "Espacio de sobra para ajustar tono, pronunciación o cualquier detalle antes de la entrega final." },
     { t: "Entrega en 14 días hábiles", d: "Plazo pensado para cursos de hasta 15 horas en varios idiomas a la vez. Si necesitas ir más rápido, la calculadora incluye una opción de entrega prioritaria." },
+    { t: "Parte de tu contenido gratuito en redes", d: "Traducimos una selección de tu contenido gratuito para redes sociales (reels, shorts o clips), para que tu audiencia internacional te conozca antes de comprar el curso." },
+    
   ];
 
   return (
@@ -250,30 +252,21 @@ const LANGUAGES: { value: string; label: string; rate: number }[] = [
 
 const MAX_LANGS = 3;
 
-// Elegir más idiomas apenas debería mover el precio: Premium ya incluye
-// hasta 3 en el mismo plan, así que el incremento es pequeño, no un
-// multiplicador agresivo por cada idioma añadido.
-const BUNDLE_MULTIPLIER: Record<number, number> = { 1: 1, 2: 1.25, 3: 1.4 };
-
 // El plan Premium cuesta siempre entre estos dos valores, sin excepción.
-const MIN_PRICE = 3000;
-const MAX_PRICE = 7500;
+const MIN_PRICE = 700;
+const MAX_PRICE = 1500;
 
-// A partir de 5h (el punto de anclaje del "Desde €3.000"), cada minuto
-// adicional cuesta menos que los primeros — igual que el descuento por
-// combinar idiomas, pero aplicado a la duración del curso. Así, 1 solo
-// idioma a 15h no dispara el precio por sí solo.
-const BASE_MINUTES = 5 * 60;
-const EXTRA_MINUTE_FACTOR = 0.3;
+// Reparto del margen (MAX_PRICE - MIN_PRICE = 800): 400 + 300 + 100.
+// Con todo al mínimo da 700 y con todo al máximo da 1.500.
+const HOURS_WEIGHT = 400;
+const LANGS_WEIGHT = 300;
+const EXPRESS_WEIGHT = 100;
 
-function durationCost(minutes: number, rate: number) {
-  if (minutes <= BASE_MINUTES) return minutes * rate;
-  const extra = minutes - BASE_MINUTES;
-  return BASE_MINUTES * rate + extra * rate * EXTRA_MINUTE_FACTOR;
-}
+const MIN_HOURS = 5;
+const MAX_HOURS = 15;
 
 function PriceCalculator() {
-  const [hours, setHours] = useState(5);
+  const [hours, setHours] = useState(MIN_HOURS);
   const [selectedLangs, setSelectedLangs] = useState<string[]>(["en"]);
   const [express, setExpress] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
@@ -304,26 +297,24 @@ function PriceCalculator() {
     return `${labels[0]} +${labels.length - 1} más`;
   }, [selectedLangs]);
 
-  const hardestRate = useMemo(() => {
-    if (selectedLangs.length === 0) return 0;
-    return Math.max(...selectedLangs.map((v) => LANGUAGES.find((l) => l.value === v)!.rate));
-  }, [selectedLangs]);
-
   const { low, high } = useMemo(() => {
     if (selectedLangs.length === 0) return { low: 0, high: 0 };
-    const minutes = hours * 60;
-    const bundle = BUNDLE_MULTIPLIER[selectedLangs.length] ?? 1;
-    const deliveryMultiplier = express ? 150 : 1;
-    const base = durationCost(minutes, hardestRate) * bundle + deliveryMultiplier;
-    const rawLow = Math.round((base * 0.9) / 10) * 10;
-    const rawHigh = Math.round((base * 1.1) / 10) * 10;
-    // Se acota siempre al rango real del plan: nunca por debajo de 3.000
-    // ni por encima de 7.500, pase lo que pase con horas/idiomas/entrega.
+    const hoursFactor = (hours - MIN_HOURS) / (MAX_HOURS - MIN_HOURS); // 0..1
+    const langsFactor = (selectedLangs.length - 1) / (MAX_LANGS - 1); // 0..1
+    const base =
+      MIN_PRICE +
+      hoursFactor * HOURS_WEIGHT +
+      langsFactor * LANGS_WEIGHT +
+      (express ? EXPRESS_WEIGHT : 0); // siempre entre 700 y 1.500
+
+    const clamp = (n: number) => Math.min(Math.max(n, MIN_PRICE), MAX_PRICE);
+    const round10 = (n: number) => Math.round(n / 10) * 10;
+
     return {
-      low: Math.min(Math.max(rawLow, MIN_PRICE), MAX_PRICE),
-      high: Math.min(Math.max(rawHigh, MIN_PRICE), MAX_PRICE),
+      low: clamp(round10(base * 0.95)),
+      high: clamp(round10(base * 1.05)),
     };
-  }, [hours, hardestRate, selectedLangs, express]);
+  }, [hours, selectedLangs, express]);
 
   const atLimit = selectedLangs.length >= MAX_LANGS;
 
@@ -341,8 +332,8 @@ function PriceCalculator() {
         </div>
         <input
           type="range"
-          min={5}
-          max={15}
+          min={MIN_HOURS}
+          max={MAX_HOURS}
           step={0.5}
           value={hours}
           onChange={(e) => setHours(parseFloat(e.target.value))}
@@ -372,7 +363,7 @@ function PriceCalculator() {
           >
             <span className="truncate">{selectedLabel}</span>
             <svg
-              className={`w-3.5 h-3.5 text-primary transition-transform duration-200 flex-shrink-0 ${langOpen ? "rotate-100" : ""}`}
+              className={`w-3.5 h-3.5 text-primary transition-transform duration-200 flex-shrink-0 ${langOpen ? "rotate-180" : ""}`}
               viewBox="0 0 12 8"
               fill="none"
             >
@@ -483,7 +474,7 @@ function PriceCalculator() {
 
       <button
         onClick={() => {
-          setHours(5);
+          setHours(MIN_HOURS);
           setSelectedLangs(["en"]);
           setExpress(false);
           setLangOpen(false);

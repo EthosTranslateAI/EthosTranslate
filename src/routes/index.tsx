@@ -767,7 +767,7 @@ function Pricing() {
       d: "Para cursos hasta 15h",
       price: "3,000€ - 7,500€",
       priceNote: "según duración e idiomas",
-      f: ["Traducción a 3 idiomas", "Subtitulado + doblaje IA", "Project manager dedicado", "3 revisiones incluidas", "Entrega en 10 días hábiles"],
+      f: ["Traducción a 3 idiomas", "Subtitulado", "Project manager dedicado", "3 revisiones incluidas", "Entrega en 10 días hábiles"],
       cta: "Plan más elegido",
       to: "/premium",
       highlight: true,

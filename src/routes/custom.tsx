@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Languages,
   Sparkles,
@@ -15,6 +15,8 @@ import {
   Clock,
   Star,
   Quote,
+  RotateCcw,
+  Share2,
 } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import globeImg from "@/assets/globe.jpg";
@@ -26,7 +28,7 @@ export const Route = createFileRoute("/custom")({
       {
         name: "description",
         content:
-          "Localización a medida para creadores con catálogos grandes: 10+ idiomas, clonación de voz, equipo dedicado y SLA prioritario.",
+          "Localización a medida para creadores con catálogos grandes: 3+ idiomas, clonación de voz, equipo dedicado y SLA prioritario.",
       },
       { property: "og:title", content: "ETHOS — Plan Custom" },
       {
@@ -45,6 +47,7 @@ function CustomPlan() {
       <Hero />
       <Included />
       <WhyCustom />
+      <PriceEstimator />
       <Process />
       <Testimonial />
       <FAQ />
@@ -109,11 +112,16 @@ function Hero() {
         </h1>
 
         <p className="mt-8 max-w-2xl mx-auto text-lg lg:text-xl text-muted-foreground leading-relaxed animate-fade-up" style={{ animationDelay: "0.2s" }}>
-          Catálogos grandes, lanzamientos simultáneos en 10+ idiomas y necesidades que no entran en una plantilla.
+          Catálogos grandes, lanzamientos simultáneos en 3+ idiomas y necesidades que no entran en una plantilla.
           Diseñamos un plan de localización a tu medida, con un equipo dedicado full-time a tu marca.
         </p>
 
-        <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-up" style={{ animationDelay: "0.3s" }}>
+        <div className="mt-10 flex items-center justify-center gap-3 text-sm text-muted-foreground animate-fade-up" style={{ animationDelay: "0.25s" }}>
+          <span className="text-3xl lg:text-4xl font-display text-gold-gradient leading-normal pb-1">Desde €2.000</span>
+          <span className="text-xs">según duración, idiomas y doblaje</span>
+        </div>
+
+        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-up" style={{ animationDelay: "0.3s" }}>
           <a
             href="https://calendly.com/ethostranslate/llamada-informativa"
             className="group inline-flex items-center gap-2 px-8 py-4 rounded-full bg-gold-gradient text-primary-foreground font-medium shadow-glow hover:scale-[1.03] transition"
@@ -132,7 +140,7 @@ function Hero() {
 
         <div className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-8 max-w-3xl mx-auto animate-fade-up" style={{ animationDelay: "0.4s" }}>
           {[
-            { k: "10+", v: "Idiomas simultáneos" },
+            { k: "3+", v: "Idiomas simultáneos" },
             { k: "24/7", v: "Soporte prioritario" },
             { k: "1", v: "Equipo dedicado" },
             { k: "SLA", v: "Con garantía" },
@@ -150,12 +158,12 @@ function Hero() {
 
 function Included() {
   const items = [
-    { icon: Globe2, title: "10+ idiomas simultáneos", desc: "Lanza tu curso o campaña en todos tus mercados a la vez, sin colas de producción." },
+    { icon: Globe2, title: "3+ idiomas simultáneos", desc: "Lanza tu curso o campaña en todos tus mercados a la vez, sin colas de producción." },
     { icon: Mic, title: "Doblaje con clonación de voz", desc: "Tu voz, entrenada y autorizada contractualmente, hablando cada idioma con naturalidad." },
     { icon: FileCheck, title: "Adaptación de exámenes y quizzes", desc: "Localizamos también la evaluación de tu curso, no solo el vídeo: exámenes, quizzes y materiales descargables." },
     { icon: Users, title: "Equipo dedicado full-time", desc: "Traductores, revisores y un project manager asignados en exclusiva a tu cuenta." },
-    { icon: Clock, title: "SLA prioritario", desc: "Tiempos de entrega garantizados por contrato, con prioridad sobre el resto de la cola de producción." },
     { icon: Headphones, title: "Soporte 24/7", desc: "Un canal directo con tu equipo, disponible todos los días, para lanzamientos que no pueden esperar." },
+    { icon: Share2, title: "Contenido para redes sociales", desc: "Traducimos sin coste adicional tu contenido gratuito para redes (reels, shorts, posts y clips), para que tu marca también crezca en cada idioma." },
   ];
 
   return (
@@ -227,6 +235,183 @@ function WhyCustom() {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------- CALCULADORA DE PRECIO ---------- */
+
+// El plan Custom cuesta siempre entre estos dos valores, sin excepción.
+const MIN_PRICE = 2000;
+const MAX_PRICE = 3000;
+
+// Reparto del margen (MAX_PRICE - MIN_PRICE = 1.000): 300 + 300 + 250 + 150.
+// Con todo al mínimo da 2.000 y con todo al máximo da 3.000.
+const HOURS_WEIGHT = 300;
+const LANGS_WEIGHT = 300;
+const DUBBING_WEIGHT = 250;
+const EXPRESS_WEIGHT = 150;
+
+const MIN_HOURS = 15;
+const MAX_HOURS = 50;
+const MIN_LANGS = 1;
+const MAX_LANGS = 3;
+
+const DUBBING_OPTIONS: { value: string; label: string; factor: number }[] = [
+  { value: "subs", label: "Subtítulos", factor: 0 },
+  { value: "ia", label: "Voz IA", factor: 0.5 },
+  { value: "clone", label: "Clonación", factor: 1 },
+];
+
+function PriceEstimator() {
+  const [hours, setHours] = useState(MIN_HOURS);
+  const [langs, setLangs] = useState(MIN_LANGS);
+  const [dubbing, setDubbing] = useState("subs");
+  const [express, setExpress] = useState(false);
+
+  const { low, high } = useMemo(() => {
+    const hoursFactor = (hours - MIN_HOURS) / (MAX_HOURS - MIN_HOURS); // 0..1
+    const langsFactor = (langs - MIN_LANGS) / (MAX_LANGS - MIN_LANGS); // 0..1
+    const dubbingFactor = DUBBING_OPTIONS.find((d) => d.value === dubbing)!.factor; // 0..1
+    const base =
+      MIN_PRICE +
+      hoursFactor * HOURS_WEIGHT +
+      langsFactor * LANGS_WEIGHT +
+      dubbingFactor * DUBBING_WEIGHT +
+      (express ? EXPRESS_WEIGHT : 0); // siempre entre 2.000 y 3.000
+
+    const clamp = (n: number) => Math.min(Math.max(n, MIN_PRICE), MAX_PRICE);
+    const round10 = (n: number) => Math.round(n / 10) * 10;
+
+    return {
+      low: clamp(round10(base * 0.95)),
+      high: clamp(round10(base * 1.05)),
+    };
+  }, [hours, langs, dubbing, express]);
+
+  return (
+    <section id="estimador" className="relative py-28 px-6 lg:px-10">
+      <div className="max-w-xl mx-auto">
+        <div className="text-center mb-12">
+          <div className="text-xs uppercase tracking-[0.3em] text-primary mb-4">— Calculadora —</div>
+          <h2 className="text-4xl lg:text-5xl font-display leading-[1.15] pb-1">
+            Aproxima tu <span className="text-gold-gradient italic">presupuesto</span>
+          </h2>
+          <p className="mt-4 text-sm text-muted-foreground">Una estimación orientativa, en segundos.</p>
+        </div>
+
+        <div className="rounded-3xl border border-border bg-card/60 p-8">
+          {/* Horas */}
+          <div className="mb-7">
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-sm font-medium">Duración del catálogo</label>
+              <span className="text-sm text-primary font-medium">{hours}h</span>
+            </div>
+            <input
+              type="range"
+              min={MIN_HOURS}
+              max={MAX_HOURS}
+              step={1}
+              value={hours}
+              onChange={(e) => setHours(parseInt(e.target.value, 10))}
+              className="w-full accent-primary"
+            />
+            <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
+              <span>15h</span>
+              <span>50h</span>
+            </div>
+          </div>
+
+          {/* Idiomas */}
+          <div className="mb-7">
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-sm font-medium">Número de idiomas</label>
+              <span className="text-sm text-primary font-medium">{langs === MAX_LANGS ? `${MAX_LANGS}+` : langs}</span>
+            </div>
+            <input
+              type="range"
+              min={MIN_LANGS}
+              max={MAX_LANGS}
+              step={1}
+              value={langs}
+              onChange={(e) => setLangs(parseInt(e.target.value, 10))}
+              className="w-full accent-primary"
+            />
+            <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
+              <span>1</span>
+              <span>3+</span>
+            </div>
+          </div>
+
+          {/* Doblaje */}
+          <div className="mb-7">
+            <label className="text-sm font-medium mb-3 block">Nivel de doblaje</label>
+            <div className="grid grid-cols-3 gap-2">
+              {DUBBING_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setDubbing(opt.value)}
+                  className={`text-sm px-3 py-3 rounded-xl border transition ${
+                    dubbing === opt.value
+                      ? "border-primary bg-primary/10 text-foreground"
+                      : "border-border text-muted-foreground hover:border-primary/40"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Entrega */}
+          <div className="mb-8">
+            <label className="text-sm font-medium mb-3 block">Tiempo de entrega</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setExpress(false)}
+                className={`text-sm px-4 py-3 rounded-xl border transition ${
+                  !express ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground hover:border-primary/40"
+                }`}
+              >
+                Estándar
+                <div className="text-[10px] mt-0.5 opacity-70">Según calendario</div>
+              </button>
+              <button
+                onClick={() => setExpress(true)}
+                className={`text-sm px-4 py-3 rounded-xl border transition ${
+                  express ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground hover:border-primary/40"
+                }`}
+              >
+                Prioritaria
+                <div className="text-[10px] mt-0.5 opacity-70">SLA reforzado</div>
+              </button>
+            </div>
+          </div>
+
+          {/* Resultado */}
+          <div className="rounded-2xl bg-gold-gradient/10 border border-primary/30 p-6 text-center">
+            <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">Estimación</div>
+            <div className="text-3xl font-display text-gold-gradient leading-normal pb-1">
+              {low === high
+                ? `€${low.toLocaleString("es-ES")}`
+                : `€${low.toLocaleString("es-ES")} – €${high.toLocaleString("es-ES")}`}
+            </div>
+            <div className="text-[11px] text-muted-foreground mt-2">Propuesta cerrada tras la llamada de descubrimiento</div>
+          </div>
+
+          <button
+            onClick={() => {
+              setHours(MIN_HOURS);
+              setLangs(MIN_LANGS);
+              setDubbing("subs");
+              setExpress(false);
+            }}
+            className="mt-4 w-full inline-flex items-center justify-center gap-2 text-xs text-muted-foreground hover:text-primary transition"
+          >
+            <RotateCcw className="w-3 h-3" /> Reiniciar
+          </button>
         </div>
       </div>
     </section>

@@ -1,9 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect, useRef } from "react";
-import { Languages, Sparkles, Clock, ShieldCheck, TrendingUp, Check, ArrowRight, Play, Star, Quote, UserCheck, ThumbsUp, Volume2, VolumeX, Captions } from "lucide-react";
+import { useState, useRef } from "react";
+import { Languages, Sparkles, Clock, ShieldCheck, TrendingUp, Check, ArrowRight, Play, Star, Quote, UserCheck, ThumbsUp, Volume2, VolumeX } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import influencerImg from "@/assets/influencer.jpg";
 import globeImg from "@/assets/globe.jpg";
+import videoEspanol from "@/assets/ESPANOL.mp4";
+import videoIngles from "@/assets/INGLES.mp4";
+import videoChino from "@/assets/CHINO.mp4";
+import videoAleman from "@/assets/ALEMAN.mp4";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -12,10 +16,6 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Llevamos tu curso al mundo. Traducción profesional, subtitulado, doblaje y localización de cursos de influencers a más de 30 idiomas." },
       { property: "og:title", content: "ETHOS — La forma más rápida de escalar tu contenido" },
       { property: "og:description", content: "Multiplica tus ventas internacionales. Traducimos cursos completos de influencers con calidad cinematográfica." },
-      // 👇 Fix Error 153 de YouTube: fuerza que el navegador envíe la
-      // cabecera Referrer correcta a los iframes (requerido por YouTube
-      // desde finales de 2025 para validar el origen del embed).
-      { name: "referrer", content: "strict-origin-when-cross-origin" },
     ],
   }),
   component: Landing,
@@ -287,12 +287,7 @@ function Stats() {
 }
 
 function VideoShowcase() {
-  const playerRef = useRef(null);
-  const containerIdRef = useRef(`yt-player-${Math.random().toString(36).slice(2)}`);
-  const progressIntervalRef = useRef<any>(null);
-  const apiTimeoutRef = useRef<any>(null);
-  const readyTimeoutRef = useRef<any>(null);
-  const langRef = useRef("es"); // siempre apunta al idioma "actual" para los closures del player
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -301,27 +296,17 @@ function VideoShowcase() {
   const [muted, setMuted] = useState(false);
   const [hovering, setHovering] = useState(false);
   const [lang, setLang] = useState("es");
-  const [apiReady, setApiReady] = useState(false);
-  const [playerReady, setPlayerReady] = useState(false);
   const [videoError, setVideoError] = useState<string | null>(null);
-  const [showCaptions, setShowCaptions] = useState(false);
 
+  // Los cuatro vídeos se cargan desde src/assets (ESPANOL, INGLES, CHINO, ALEMAN).
   const languages = [
-    { code: "es", label: "Español", flagUrl: "https://flagcdn.com/es.svg", videoId: "t058TYbEDLI" },
-    { code: "en", label: "English", flagUrl: "https://flagcdn.com/gb.svg", videoId: "xlzMj5PPl9M" },
-    { code: "ch", label: "Chino", flagUrl: "https://flagcdn.com/cn.svg", videoId: "bvoi9NfXEvI" },
-    { code: "de", label: "Deutsch", flagUrl: "https://flagcdn.com/de.svg", videoId: "zWGOyo64ICk" },
+    { code: "es", label: "Español", flagUrl: "https://flagcdn.com/es.svg", src: videoEspanol },
+    { code: "en", label: "English", flagUrl: "https://flagcdn.com/gb.svg", src: videoIngles },
+    { code: "ch", label: "Chino", flagUrl: "https://flagcdn.com/cn.svg", src: videoChino },
+    { code: "de", label: "Deutsch", flagUrl: "https://flagcdn.com/de.svg", src: videoAleman },
   ];
 
-  const activeLang = languages.find((l) => l.code === lang);
-
-  // Códigos de idioma que YouTube usa para las pistas de subtítulos.
-  // "ch" en nuestra lista de idiomas es chino, YouTube lo espera como zh-Hans.
-  const CAPTION_LANG: Record<string, string> = { es: "es", en: "en", de: "de", ch: "zh-Hans" };
-
-  useEffect(() => {
-    langRef.current = lang;
-  }, [lang]);
+  const activeLang = languages.find((l) => l.code === lang) || languages[0];
 
   const formatTime = (t: number) => {
     if (!isFinite(t)) return "00:00";
@@ -330,224 +315,35 @@ function VideoShowcase() {
     return `${m}:${s}`;
   };
 
-  // Carga el script de la YouTube IFrame API una sola vez, con timeout de seguridad.
-  useEffect(() => {
-    // @ts-ignore
-    if (window.YT && window.YT.Player) {
-      setApiReady(true);
-      return;
-    }
-    const existingScript = document.getElementById("youtube-iframe-api");
-    if (!existingScript) {
-      const tag = document.createElement("script");
-      tag.id = "youtube-iframe-api";
-      tag.src = "https://www.youtube.com/iframe_api";
-      tag.onerror = () => {
-        setVideoError(
-          "No se pudo cargar el reproductor de YouTube (puede estar bloqueado por un adblocker o firewall)."
-        );
-      };
-      document.body.appendChild(tag);
-    }
-    // @ts-ignore
-    const prevCallback = window.onYouTubeIframeAPIReady;
-    // @ts-ignore
-    window.onYouTubeIframeAPIReady = () => {
-      if (prevCallback) prevCallback();
-      setApiReady(true);
-    };
-
-    const poll = window.setInterval(() => {
-      // @ts-ignore
-      if (window.YT && window.YT.Player) {
-        setApiReady(true);
-        window.clearInterval(poll);
-      }
-    }, 200);
-
-    // Timeout de seguridad: si a los 6s la API no cargó, mostramos error en vez
-    // de dejar la caja negra vacía para siempre.
-    apiTimeoutRef.current = window.setTimeout(() => {
-      // @ts-ignore
-      if (!(window.YT && window.YT.Player)) {
-        setVideoError(
-          "No se pudo cargar el reproductor de YouTube. Comprueba tu conexión o si un bloqueador de anuncios está bloqueando youtube.com."
-        );
-      }
-    }, 6000);
-
-    return () => {
-      window.clearInterval(poll);
-      window.clearTimeout(apiTimeoutRef.current);
-    };
-  }, []);
-
-  // Crea el player UNA SOLA VEZ, cuando la API está lista.
-  // Ya no se destruye/recrea al cambiar de idioma: eso es lo que causaba
-  // que la segunda reproducción se quedara colgada (onReady no siempre
-  // llega cuando se destruye y crea un iframe nuevo en el mismo contenedor).
-  useEffect(() => {
-    if (!apiReady || playerRef.current) return;
-
-    const initialLang = languages.find((l) => l.code === langRef.current) || languages[0];
-
-    // @ts-ignore
-    playerRef.current = new window.YT.Player(containerIdRef.current, {
-      videoId: initialLang.videoId,
-      playerVars: {
-        controls: 0,
-        modestbranding: 1,
-        rel: 0,
-        iv_load_policy: 3,
-        disablekb: 1,
-        fs: 0,
-        playsinline: 1,
-        enablejsapi: 1,
-        cc_load_policy: 0,
-        origin: window.location.origin,
-      },
-      events: {
-        onReady: (e: any) => {
-          window.clearTimeout(readyTimeoutRef.current);
-          setDuration(e.target.getDuration());
-          setMuted(e.target.isMuted());
-          setPlayerReady(true);
-        },
-        onStateChange: (e: any) => {
-          // @ts-ignore
-          const YTState = window.YT.PlayerState;
-          if (e.data === YTState.PLAYING) {
-            setPlaying(true);
-            setDuration(e.target.getDuration());
-          } else if (e.data === YTState.PAUSED || e.data === YTState.ENDED) {
-            setPlaying(false);
-          } else if (e.data === YTState.CUED) {
-            // Se dispara tras cueVideoById() al cambiar de idioma
-            setDuration(e.target.getDuration());
-          }
-        },
-        onError: (e: any) => {
-          console.error("YouTube player error:", e.data);
-          setVideoError(
-            e.data === 101 || e.data === 150
-              ? "Este vídeo no permite reproducción incrustada."
-              : e.data === 100
-              ? "Este vídeo no está disponible."
-              : "No se pudo cargar el vídeo."
-          );
-        },
-      },
-    });
-
-    // Timeout de seguridad: si onReady no llega en 10s (solo en la carga
-    // inicial del iframe), avisamos en vez de dejar el player colgado.
-    readyTimeoutRef.current = window.setTimeout(() => {
-      setPlayerReady((ready) => {
-        if (!ready) {
-          setVideoError("El vídeo está tardando demasiado en cargar. Pruébalo directamente en YouTube.");
-        }
-        return ready;
-      });
-    }, 10000);
-
-    return () => {
-      window.clearTimeout(readyTimeoutRef.current);
-      if (playerRef.current) {
-        // @ts-ignore
-        playerRef.current.destroy();
-        playerRef.current = null;
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiReady]);
-
-  // Cuando cambia el idioma DESPUÉS de que el player ya existe,
-  // solo cambiamos el vídeo cargado (cueVideoById), sin destruir el iframe.
-  useEffect(() => {
-    const p: any = playerRef.current;
-    if (!p || !playerReady || !activeLang || typeof p.cueVideoById !== "function") return;
-
-    setVideoError(null);
-    setPlaying(false);
-    setProgress(0);
-    setCurrent(0);
-    p.cueVideoById(activeLang.videoId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lang]);
-
-  // Sincroniza el toggle de subtítulos con el reproductor. Se reaplica también
-  // al cambiar de idioma o de vídeo, porque YouTube resetea la pista de
-  // subtítulos cada vez que se carga un vídeo nuevo con cueVideoById.
-  useEffect(() => {
-    const p: any = playerRef.current;
-    if (!p || !playerReady || typeof p.setOption !== "function") return;
-
-    if (showCaptions && activeLang) {
-      p.setOption("captions", "track", {
-        languageCode: CAPTION_LANG[activeLang.code] || activeLang.code,
-      });
-    } else {
-      p.setOption("captions", "track", {});
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showCaptions, lang, playerReady]);
-
-  useEffect(() => {
-    if (playing) {
-      progressIntervalRef.current = window.setInterval(() => {
-        const p: any = playerRef.current;
-        if (p && p.getCurrentTime) {
-          const c = p.getCurrentTime();
-          const d = p.getDuration();
-          setCurrent(c);
-          setDuration(d);
-          setProgress((c / d) * 100 || 0);
-        }
-      }, 250);
-    }
-    return () => {
-      if (progressIntervalRef.current !== null) {
-        window.clearInterval(progressIntervalRef.current);
-      }
-    };
-  }, [playing]);
-
   const togglePlay = () => {
-    const p: any = playerRef.current;
-    if (!p || !playerReady || typeof p.playVideo !== "function") return;
-    if (playing) {
-      p.pauseVideo();
-    } else {
-      p.playVideo();
-    }
+    const v = videoRef.current;
+    if (!v) return;
+    if (v.paused) v.play().catch(() => {});
+    else v.pause();
   };
 
   const toggleMute = () => {
-    const p: any = playerRef.current;
-    if (!p || !playerReady) return;
-    if (p.isMuted()) {
-      p.unMute();
-      setMuted(false);
-    } else {
-      p.mute();
-      setMuted(true);
-    }
-  };
-
-  const toggleCaptions = () => {
-    setShowCaptions((v) => !v);
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = !v.muted;
+    setMuted(v.muted);
   };
 
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
-    const p: any = playerRef.current;
-    if (!p || !playerReady || !duration) return;
+    const v = videoRef.current;
+    if (!v || !v.duration) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const pct = (e.clientX - rect.left) / rect.width;
-    p.seekTo(pct * duration, true);
+    v.currentTime = pct * v.duration;
   };
 
   const selectLang = (code: string) => {
     if (code === lang) return;
+    setVideoError(null);
+    setPlaying(false);
+    setProgress(0);
+    setCurrent(0);
+    setDuration(0);
     setLang(code);
   };
 
@@ -601,32 +397,31 @@ function VideoShowcase() {
               <div className="absolute -inset-6 bg-gold-gradient opacity-10 blur-3xl rounded-full pointer-events-none" />
 
               <div className="relative aspect-video">
-                {/* Miniatura de fondo SIEMPRE visible mientras el player carga o si falla */}
-                {activeLang && (
-                  <img
-                    src={`https://img.youtube.com/vi/${activeLang.videoId}/hqdefault.jpg`}
-                    alt=""
-                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
-                      playerReady && !videoError ? "opacity-0" : "opacity-100"
-                    }`}
-                  />
-                )}
-
-                <div id={containerIdRef.current} className="w-full h-full relative z-[1]" />
+                {/* key={lang}: al cambiar de idioma se crea un <video> nuevo con su propio archivo.
+                    El "#t=0.1" hace que se vea un primer fotograma como miniatura. */}
+                <video
+                  key={activeLang.code}
+                  ref={videoRef}
+                  src={`${activeLang.src}#t=0.1`}
+                  playsInline
+                  preload="metadata"
+                  muted={muted}
+                  className="absolute inset-0 w-full h-full object-contain bg-black z-[1]"
+                  onPlay={() => setPlaying(true)}
+                  onPause={() => setPlaying(false)}
+                  onEnded={() => setPlaying(false)}
+                  onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+                  onTimeUpdate={(e) => {
+                    const v = e.currentTarget;
+                    setCurrent(v.currentTime);
+                    setProgress((v.currentTime / v.duration) * 100 || 0);
+                  }}
+                  onError={() => setVideoError("No se pudo cargar el vídeo.")}
+                />
 
                 {videoError && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-center px-6 text-sm text-muted-foreground bg-black/80 z-10">
+                  <div className="absolute inset-0 flex items-center justify-center text-center px-6 text-sm text-muted-foreground bg-black/80 z-10">
                     <p>{videoError}</p>
-                    {activeLang && (
-                      <a
-                        href={`https://www.youtube.com/watch?v=${activeLang.videoId}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-primary underline"
-                      >
-                        Ver en YouTube ↗
-                      </a>
-                    )}
                   </div>
                 )}
 
@@ -650,7 +445,7 @@ function VideoShowcase() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
                   <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
                 </span>
-                <img src={activeLang?.flagUrl} alt={activeLang?.label} className="w-4 h-3 object-cover rounded-sm" />
+                <img src={activeLang.flagUrl} alt={activeLang.label} className="w-4 h-3 object-cover rounded-sm" />
               </div>
 
               {!playing && !videoError && (
@@ -684,14 +479,6 @@ function VideoShowcase() {
                     <div className="flex items-center gap-4">
                       <button onClick={toggleMute} className="text-foreground hover:text-primary transition">
                         {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                      </button>
-                      <button
-                        onClick={toggleCaptions}
-                        className={`transition ${showCaptions ? "text-primary" : "text-foreground hover:text-primary"}`}
-                        aria-label={showCaptions ? "Desactivar subtítulos" : "Activar subtítulos"}
-                        aria-pressed={showCaptions}
-                      >
-                        <Captions className="w-4 h-4" />
                       </button>
                     </div>
                     <span className="text-[9px] font-mono tracking-widest text-muted-foreground">

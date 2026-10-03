@@ -281,7 +281,7 @@ function Testimonial() {
         <div className="mt-8 flex items-center justify-center gap-3">
           <div>
             <div className="font-medium">Marina Solís</div>
-            <div className="text-xs text-muted-foreground mt-1">Fundadora, academia online con 12 cursos activos</div>
+            <div className="text-xs text-muted-foreground mt-1">Fundadora, academia online con 3 cursos activos</div>
           </div>
         </div>
         <div className="mt-4 flex justify-center gap-0.5">

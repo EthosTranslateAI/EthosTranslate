@@ -710,7 +710,7 @@ function VideoShowcase() {
 
 function Testimonials() {
   const items = [
-    { q: "Traduje mi curso de inglés a español y portugués con ellos. El proceso fue simple y el resultado sonaba natural. Recomendado.", a: "Laura Garcia", r: "Mentor de ventas", s: 5 },
+    { q: "Traduje mi curso de español a inglés y portugués con ellos. El proceso fue simple y el resultado sonaba natural. Recomendado.", a: "Laura Garcia", r: "Mentor de ventas", s: 5 },
     { q: "Buena relación calidad-precio. Tardaron un poco más de lo esperado, pero la traducción de los subtítulos quedó muy cuidada. Volvería a trabajar con ellos", a: "Javier Ortiz", r: "Creador de cursos de marca personal", s: 4 },
     { q: "Necesitaba adaptar mis vídeos a varios idiomas rápido y sin complicarme. Cumplieron los plazos y el soporte respondía rápido cuando tenía dudas.", a: "Diego Fernandez", r: "Coach de productividad", s: 5 },
   ];

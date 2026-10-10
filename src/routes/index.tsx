@@ -4,10 +4,10 @@ import { Languages, Sparkles, Clock, ShieldCheck, TrendingUp, Check, ArrowRight,
 import heroBg from "@/assets/hero-bg.jpg";
 import influencerImg from "@/assets/influencer.jpg";
 import globeImg from "@/assets/globe.jpg";
-import videoEspanol from "@/assets/ESPANOL.mp4";
-import videoIngles from "@/assets/INGLES.mp4";
-import videoChino from "@/assets/CHINO.mp4";
-import videoAleman from "@/assets/ALEMAN.mp4";
+import videoEspanol from "@/assets/espanol.mp4";
+import videoIngles from "@/assets/ingles.mp4";
+import videoFrances from "@/assets/frances.mp4";
+import videoAleman from "@/assets/aleman.mp4";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -298,11 +298,11 @@ function VideoShowcase() {
   const [lang, setLang] = useState("es");
   const [videoError, setVideoError] = useState<string | null>(null);
 
-  // Los cuatro vídeos se cargan desde src/assets (ESPANOL, INGLES, CHINO, ALEMAN).
+  // Los cuatro vídeos se cargan desde src/assets (ESPANOL, INGLES, FRANCES, ALEMAN).
   const languages = [
     { code: "es", label: "Español", flagUrl: "https://flagcdn.com/es.svg", src: videoEspanol },
     { code: "en", label: "English", flagUrl: "https://flagcdn.com/gb.svg", src: videoIngles },
-    { code: "ch", label: "Chino", flagUrl: "https://flagcdn.com/cn.svg", src: videoChino },
+    { code: "ch", label: "Frances", flagUrl: "https://flagcdn.com/fr.svg", src: videoFrances },
     { code: "de", label: "Deutsch", flagUrl: "https://flagcdn.com/de.svg", src: videoAleman },
   ];
 
@@ -542,7 +542,7 @@ function Pricing() {
     {
       p: "Essential",
       d: "Para cursos de hasta 5h",
-      price: "900€ - 2,400€",
+      price: "300€ - 500€",
       priceNote: "según duración e idioma",
       f: ["Traducción a 1 idioma", "Subtitulado profesional", "1 revisión incluida", "Entrega en 5-7 días hábiles", "Soporte incluido"],
       cta: "Empezar",
@@ -552,7 +552,7 @@ function Pricing() {
     {
       p: "Premium",
       d: "Para cursos hasta 15h",
-      price: "3,000€ - 7,500€",
+      price: "700€ - 1500€",
       priceNote: "según duración e idiomas",
       f: ["Traducción a 3 idiomas", "Subtitulado", "Project manager dedicado", "3 revisiones incluidas", "Entrega en 10 días hábiles"],
       cta: "Plan más elegido",
@@ -562,7 +562,7 @@ function Pricing() {
     {
       p: "Custom",
       d: "Para imperios digitales",
-      price: "Presupuesto a medida",
+      price: "2000€ - 3000€",
       priceNote: null,
       f: ["10+ idiomas simultáneos", "Doblaje con clonación de voz", "Adaptación de exámenes, quizzes...", "Equipo dedicado fulltime", "SLA priority", "Soporte 24/7"],
       cta: "Hablar con ventas",
